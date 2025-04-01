@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      vudu_0: -7226440359167639306
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

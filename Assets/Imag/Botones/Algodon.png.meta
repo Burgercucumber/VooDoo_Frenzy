@@ -222,7 +222,11 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Algodon_0: 2167339102501323226
+      Algodon_1: 2002464001688366809
+      Algodon_2: 7218798533483605433
+      Algodon_3: -1753125458686201150
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
