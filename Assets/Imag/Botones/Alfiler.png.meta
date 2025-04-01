@@ -172,7 +172,9 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Alfiler_0: -3454855406616723113
+      Alfiler_1: 4542331521031362923
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
