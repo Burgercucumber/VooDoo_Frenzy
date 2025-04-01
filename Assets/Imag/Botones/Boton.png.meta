@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 1aee3484bae01c444871451cc8557576
+guid: 6c5bdab428a348141ac3900461ff5796
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6367086876565909712
-    second: Rectangle 39_0
+      213: -2433751755662205217
+    second: Boton_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,30 +96,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Rectangle 39_0
+      name: Boton_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 872
-        height: 474
+        x: 563
+        y: 532
+        width: 876
+        height: 943
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 03fcc34583093a7a0800000000000000
-      internalID: -6367086876565909712
+      spriteID: fde554c3ca3993ed0800000000000000
+      internalID: -2433751755662205217
       vertices: []
       indices: 
       edges: []
