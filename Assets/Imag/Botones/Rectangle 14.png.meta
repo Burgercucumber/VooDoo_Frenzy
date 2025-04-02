@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 2de36e2950afd2444811bf70c0f80d7d
+guid: 58a5793a8a9c5fd479eff603b5cc2008
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4640294330715232675
-    second: Rectangle 13 (1)_0
+      213: 8691142376172535697
+    second: Rectangle 14_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,17 +96,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Rectangle 13 (1)_0
+      name: Rectangle 14_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 232
-        height: 232
+        width: 400
+        height: 200
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3a95a83cb13a56040800000000000000
-      internalID: 4640294330715232675
+      spriteID: 19fbb1881f32d9870800000000000000
+      internalID: 8691142376172535697
       vertices: []
       indices: 
       edges: []
@@ -134,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Rectangle 14_0: 8691142376172535697
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
