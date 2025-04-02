@@ -784,7 +784,7 @@ MonoBehaviour:
   m_text: "Personalizaci\xF3n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 54773096a7aa7a34c95cef7e9254d54f, type: 2}
-  m_sharedMaterial: {fileID: -7754450944237532819, guid: 54773096a7aa7a34c95cef7e9254d54f, type: 2}
+  m_sharedMaterial: {fileID: 6124552501357361076, guid: 54773096a7aa7a34c95cef7e9254d54f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -937,7 +937,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 1
-  m_AdditionalShaderChannelsFlag: 25
+  m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
