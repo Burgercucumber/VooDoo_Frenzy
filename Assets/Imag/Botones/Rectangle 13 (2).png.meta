@@ -1,10 +1,25 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
+=======
+<<<<<<<< HEAD:Assets/Imag/Botones/Ellipse 1.png.meta
+guid: 680593987388ed34eb61b100d77cd92a
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4646876343654227710
+    second: Ellipse 1_0
+========
+>>>>>>> 6e0508312fa1c5fa053981b705772a720d862bcd
 guid: f8c3229fec0042f4baf816a620be2253
 TextureImporter:
   internalIDToNameTable:
   - first:
       213: -2610133050398957428
     second: Rectangle 13 (2)_0
+<<<<<<< HEAD
+=======
+>>>>>>>> 6e0508312fa1c5fa053981b705772a720d862bcd:Assets/Imag/Botones/Rectangle 13 (2).png.meta
+>>>>>>> 6e0508312fa1c5fa053981b705772a720d862bcd
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +128,26 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
+<<<<<<< HEAD
       name: Rectangle 13 (2)_0
+=======
+<<<<<<<< HEAD:Assets/Imag/Botones/Ellipse 1.png.meta
+      name: Ellipse 1_0
+========
+      name: Rectangle 13 (2)_0
+>>>>>>>> 6e0508312fa1c5fa053981b705772a720d862bcd:Assets/Imag/Botones/Rectangle 13 (2).png.meta
+>>>>>>> 6e0508312fa1c5fa053981b705772a720d862bcd
       rect:
         serializedVersion: 2
         x: 0
         y: 0
+<<<<<<< HEAD
         width: 232
         height: 232
+=======
+        width: 172
+        height: 172
+>>>>>>> 6e0508312fa1c5fa053981b705772a720d862bcd
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +156,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
+<<<<<<< HEAD
       spriteID: c80a67ad1d1f6cbd0800000000000000
       internalID: -2610133050398957428
+=======
+<<<<<<<< HEAD:Assets/Imag/Botones/Ellipse 1.png.meta
+      spriteID: 201e25de59af28fb0800000000000000
+      internalID: -4646876343654227710
+========
+      spriteID: c80a67ad1d1f6cbd0800000000000000
+      internalID: -2610133050398957428
+>>>>>>>> 6e0508312fa1c5fa053981b705772a720d862bcd:Assets/Imag/Botones/Rectangle 13 (2).png.meta
+>>>>>>> 6e0508312fa1c5fa053981b705772a720d862bcd
       vertices: []
       indices: 
       edges: []
@@ -147,8 +185,12 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
+<<<<<<< HEAD
     nameFileIdTable:
       Rectangle 13 (1)_0: 4640294330715232675
+=======
+    nameFileIdTable: {}
+>>>>>>> 6e0508312fa1c5fa053981b705772a720d862bcd
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
