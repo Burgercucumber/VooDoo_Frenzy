@@ -428,6 +428,7 @@ MonoBehaviour:
   playerSpawnMethod: 0
   spawnPrefabs:
   - {fileID: 3330925503045198327, guid: c6e3d03dc8f98d54b80234fe77a9245f, type: 3}
+  - {fileID: 3330925503045198327, guid: f0a748823e1f7104d853a483fc871fae, type: 3}
   - {fileID: 758817411532319508, guid: aa3e799acf64c104b9b0b5228e49922c, type: 3}
   - {fileID: 6255134560658980778, guid: 42f32d2aaae7acb449ae99e21fb7c3ca, type: 3}
   - {fileID: 6205332967538118617, guid: a16a175f0ec9a504a903695ecadcf13d, type: 3}
@@ -3212,11 +3213,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4171733759254480171, guid: 42f32d2aaae7acb449ae99e21fb7c3ca, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -0.00088882
+      value: 0.000026707
       objectReference: {fileID: 0}
     - target: {fileID: 4171733759254480171, guid: 42f32d2aaae7acb449ae99e21fb7c3ca, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -441.6092
+      value: -440
       objectReference: {fileID: 0}
     - target: {fileID: 4171733759254480171, guid: 42f32d2aaae7acb449ae99e21fb7c3ca, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

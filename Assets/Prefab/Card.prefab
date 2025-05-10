@@ -93,8 +93,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e04fa58e8673997499c570c5e10c6442, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
   Canvas: {fileID: 0}
-  Limite: {fileID: 0}
+  PlayerManager: {fileID: 0}
 --- !u!114 &3760038598421184574
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -246,8 +249,8 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   target: {fileID: 6629282733027480507}
-  syncPosition: 1
-  syncRotation: 1
+  syncPosition: 0
+  syncRotation: 0
   syncScale: 0
   onlySyncOnChange: 1
   compressRotation: 1

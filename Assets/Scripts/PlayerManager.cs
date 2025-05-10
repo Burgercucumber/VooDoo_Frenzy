@@ -43,6 +43,17 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
+    public void PlayCard(GameObject card)
+    {
+        CmdPlayCard(card);
+    }
+
+    [Command]
+    void CmdPlayCard(GameObject card)
+    {
+        RpcShowCard(card, "Played");
+    }
+
     [ClientRpc]
     void RpcShowCard(GameObject card, string type)
     {
@@ -59,7 +70,7 @@ public class PlayerManager : NetworkBehaviour
         }
         else if(type == "Played")
         {
-
+            card.transform.SetParent(DropZone.transform, false);
         }
     }
 }
