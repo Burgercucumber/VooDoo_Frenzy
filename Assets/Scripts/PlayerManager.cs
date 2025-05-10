@@ -39,7 +39,27 @@ public class PlayerManager : NetworkBehaviour
         {
             GameObject card = Instantiate(cards[Random.Range(0,cards.Count)], new Vector2(0, 0), Quaternion.identity);
             NetworkServer.Spawn(card, connectionToClient);
-            card.transform.SetParent(PlayerArea.transform, false);
+            RpcShowCard(card, "Dealt");
+        }
+    }
+
+    [ClientRpc]
+    void RpcShowCard(GameObject card, string type)
+    {
+        if(type == "Dealt")
+        {
+            if(isOwned)
+            {
+                card.transform.SetParent(PlayerArea.transform, false);
+            }
+            else
+            {
+                card.transform.SetParent(EnemyArea.transform, false);
+            }
+        }
+        else if(type == "Played")
+        {
+
         }
     }
 }
