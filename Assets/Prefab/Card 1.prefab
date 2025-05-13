@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 9143822919594520990}
   - component: {fileID: 3329308164964507233}
   - component: {fileID: 3625159268873858892}
+  - component: {fileID: -7491915371428041189}
   m_Layer: 6
   m_Name: Card 1
   m_TagString: Untagged
@@ -206,6 +207,18 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+        - m_Target: {fileID: -7491915371428041189}
+          m_TargetAssemblyTypeName: incrementClick, Assembly-CSharp
+          m_MethodName: IncrementClicks
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!61 &3609609663374275085
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -377,3 +390,20 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   PlayerManager: {fileID: 0}
+--- !u!114 &-7491915371428041189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3330925503045198327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3848897952ac0764c9db43f901ccb6e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  PlayerManager: {fileID: 0}
+  NumberOfClicks: 0

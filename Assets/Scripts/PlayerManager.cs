@@ -52,6 +52,27 @@ public class PlayerManager : NetworkBehaviour
     void CmdPlayCard(GameObject card)
     {
         RpcShowCard(card, "Played");
+
+        if(isServer)
+        {
+            UpdateTurnsPlayed();
+        }
+    }
+
+    [Server]
+
+    void UpdateTurnsPlayed()
+    {
+        GameManager gm = GameObject.Find("GameManager").GetComponent<GameManager>();
+        gm.UpdateTurnsPlayed();
+        RpcLogToClients("Turns Played: " + gm.TurnsPlayed);
+    }
+
+    [ClientRpc]
+
+    void RpcLogToClients(string message)
+    {
+        Debug.Log(message);
     }
 
     [ClientRpc]
@@ -106,5 +127,19 @@ public class PlayerManager : NetworkBehaviour
     void TargetOtherCard(NetworkConnection target)
     {
         Debug.Log("Targeted by Other!");
+    }
+
+    [Command]
+    public void CmdIncrementClick(GameObject card)
+    {
+        RpcIncrementClick(card);
+    }
+
+    [ClientRpc]
+    
+    void RpcIncrementClick(GameObject card)
+    {
+        card.GetComponent<incrementClick>().NumberOfClicks++;
+        Debug.Log("This card has been clicked" + card.GetComponent<incrementClick>().NumberOfClicks+"times!");
     }
 }
