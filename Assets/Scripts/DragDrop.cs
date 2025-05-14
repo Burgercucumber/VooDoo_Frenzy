@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
@@ -6,23 +6,33 @@ using Mirror;
 public class DragDrop : NetworkBehaviour
 {
     public GameObject Canvas;
-    public PlayerManager PlayerManager;
 
+    // Asignado desde PlayerManager al instanciar la carta
+    public PlayerManager OwnerPlayerManager;
+
+    private PlayerManager PlayerManager;
     private bool isDragging = false;
-    private bool isDraggable = true; 
+    private bool isDraggable = true;
 
     private GameObject startParent;
     private Vector2 startPosition;
     private GameObject dropZone;
     private bool isOverDropZone;
 
-
     void Start()
     {
         Canvas = GameObject.Find("Canvas");
-        if(!isOwned)
+
+        // Solo puedes arrastrar si eres el dueño de esta carta
+        if (!isOwned)
         {
             isDraggable = false;
+        }
+
+        // Asigna el PlayerManager si fue inyectado desde el server
+        if (OwnerPlayerManager != null)
+        {
+            PlayerManager = OwnerPlayerManager;
         }
     }
 
@@ -40,7 +50,7 @@ public class DragDrop : NetworkBehaviour
 
     public void StartDrag()
     {
-        if (!isDraggable) return; 
+        if (!isDraggable) return;
         isDragging = true;
         startParent = transform.parent.gameObject;
         startPosition = transform.position;
@@ -49,13 +59,42 @@ public class DragDrop : NetworkBehaviour
     public void EndDrag()
     {
         if (!isDraggable) return;
-        isDragging = false; 
-        if(isOverDropZone)
+
+        // Asignar PlayerManager correctamente si aún no está
+        if (PlayerManager == null)
+        {
+            foreach (var pm in Object.FindObjectsByType<PlayerManager>(FindObjectsSortMode.None))
+            {
+                if (pm.isOwned)
+                {
+                    PlayerManager = pm;
+                    break;
+                }
+            }
+
+            if (PlayerManager == null)
+            {
+                Debug.LogWarning("Player manager no asignado");
+                transform.position = startPosition;
+                transform.SetParent(startParent.transform, false);
+                return;
+            }
+        }
+
+        isDragging = false;
+
+        if (PlayerManager.HasPlayedCard)
+        {
+            Debug.Log("Ya jugaste una carta, espera para jugar otra.");
+            transform.position = startPosition;
+            transform.SetParent(startParent.transform, false);
+            return;
+        }
+
+        if (isOverDropZone)
         {
             transform.SetParent(dropZone.transform, false);
-            isDraggable = false; //No es posible moverla de regreso
-            NetworkIdentity networkIdentity = NetworkClient.connection.identity;
-            PlayerManager = networkIdentity.GetComponent<PlayerManager>();
+            isDraggable = false;
             PlayerManager.PlayCard(gameObject);
         }
         else
@@ -63,6 +102,12 @@ public class DragDrop : NetworkBehaviour
             transform.position = startPosition;
             transform.SetParent(startParent.transform, false);
         }
+    }
+
+    private void ResetCardPosition()
+    {
+        transform.position = startPosition;
+        transform.SetParent(startParent.transform, false);
     }
 
     void Update()

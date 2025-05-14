@@ -1,7 +1,7 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Mirror; 
+using Mirror;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -10,6 +10,11 @@ public class PlayerManager : NetworkBehaviour
     public GameObject PlayerArea;
     public GameObject EnemyArea;
     public GameObject DropZone;
+
+    [SyncVar(hook = nameof(OnPlayedCardChanged))]
+    private bool hasPlayedCard = false;
+
+    public bool HasPlayedCard => hasPlayedCard;
 
     List<GameObject> cards = new List<GameObject>();
 
@@ -25,11 +30,11 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     public override void OnStartServer()
     {
-        base.OnStartClient();
+        base.OnStartServer(); // ✅ Corrigido, antes llamaba a OnStartClient incorrectamente
 
         cards.Add(Card);
         cards.Add(Card1);
-        Debug.Log(cards);
+        Debug.Log("Cartas disponibles en el servidor: " + cards.Count);
     }
 
     [Command]
@@ -37,7 +42,12 @@ public class PlayerManager : NetworkBehaviour
     {
         for (int i = 0; i < 5; i++)
         {
-            GameObject card = Instantiate(cards[Random.Range(0,cards.Count)], new Vector2(0, 0), Quaternion.identity);
+            GameObject card = Instantiate(cards[Random.Range(0, cards.Count)], new Vector2(0, 0), Quaternion.identity);
+
+            // Inyecta referencia del dueño (PlayerManager) a la carta
+            DragDrop drag = card.GetComponent<DragDrop>();
+            drag.OwnerPlayerManager = this;
+
             NetworkServer.Spawn(card, connectionToClient);
             RpcShowCard(card, "Dealt");
         }
@@ -45,22 +55,29 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayCard(GameObject card)
     {
-        CmdPlayCard(card);
+        if (!HasPlayedCard)
+        {
+            CmdPlayCard(card);
+        }
+        else
+        {
+            Debug.Log("Ya jugaste una carta, espera para jugar otra.");
+        }
     }
 
     [Command]
     void CmdPlayCard(GameObject card)
     {
+        hasPlayedCard = true; // Esto se sincroniza a todos por ser SyncVar
         RpcShowCard(card, "Played");
 
-        if(isServer)
+        if (isServer)
         {
             UpdateTurnsPlayed();
         }
     }
 
     [Server]
-
     void UpdateTurnsPlayed()
     {
         GameManager gm = GameObject.Find("GameManager").GetComponent<GameManager>();
@@ -69,7 +86,6 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-
     void RpcLogToClients(string message)
     {
         Debug.Log(message);
@@ -78,9 +94,9 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     void RpcShowCard(GameObject card, string type)
     {
-        if(type == "Dealt")
+        if (type == "Dealt")
         {
-            if(isOwned)
+            if (isOwned)
             {
                 card.transform.SetParent(PlayerArea.transform, false);
             }
@@ -90,10 +106,10 @@ public class PlayerManager : NetworkBehaviour
                 card.GetComponent<CardFlipper>().Flip();
             }
         }
-        else if(type == "Played")
+        else if (type == "Played")
         {
             card.transform.SetParent(DropZone.transform, false);
-            if(!isOwned)
+            if (!isOwned)
             {
                 card.GetComponent<CardFlipper>().Flip();
             }
@@ -101,14 +117,12 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-
     public void CmdTargetSelfCard()
     {
         TargetSelfCard();
     }
 
     [Command]
-
     public void CmdTargetOtherCard(GameObject target)
     {
         NetworkIdentity opponentIdentity = target.GetComponent<NetworkIdentity>();
@@ -116,14 +130,12 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [TargetRpc]
-
     void TargetSelfCard()
     {
         Debug.Log("Targeted by self!");
     }
 
     [TargetRpc]
-
     void TargetOtherCard(NetworkConnection target)
     {
         Debug.Log("Targeted by Other!");
@@ -136,10 +148,22 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    
     void RpcIncrementClick(GameObject card)
     {
-        card.GetComponent<incrementClick>().NumberOfClicks++;
-        Debug.Log("This card has been clicked" + card.GetComponent<incrementClick>().NumberOfClicks+"times!");
+        var click = card.GetComponent<incrementClick>();
+        click.NumberOfClicks++;
+        Debug.Log("This card has been clicked " + click.NumberOfClicks + " times!");
+    }
+
+    [Command]
+    public void CmdResetCardPlay()
+    {
+        hasPlayedCard = false;
+    }
+
+    // Hook para actualizar lógica local si es necesario
+    void OnPlayedCardChanged(bool oldValue, bool newValue)
+    {
+        Debug.Log($"[SyncVar] hasPlayedCard cambiado: {oldValue} → {newValue}");
     }
 }
