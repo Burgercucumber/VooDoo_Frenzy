@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 4164540814680054072}
   m_Layer: 6
   m_Name: Card
-  m_TagString: Untagged
+  m_TagString: Card
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -101,7 +101,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   Canvas: {fileID: 0}
-  PlayerManager: {fileID: 0}
+  OwnerPlayerManager: {fileID: 0}
 --- !u!114 &3760038598421184574
 MonoBehaviour:
   m_ObjectHideFlags: 0
