@@ -6,13 +6,21 @@ using Mirror;
 public class RoundManager : NetworkBehaviour
 {
     public float roundTime = 15f;
+
+    [SyncVar]
     private float timeRemaining;
+
+    [SyncVar]
     private bool isRoundActive = false;
+
+    [SyncVar]
     private int currentRound = 0;
-    private List<PlayerManager> players = new List<PlayerManager>();
+
+    [SyncVar]
+    private bool gameStarted = false;
+
     private float lastLogTime = 0f;
     private float logInterval = 1f;
-    private bool gameStarted = false;
 
     void Start()
     {
@@ -26,16 +34,8 @@ public class RoundManager : NetworkBehaviour
     IEnumerator DelayedStart()
     {
         yield return new WaitForSeconds(1f);
-        RefreshPlayersList();
         // Ya no iniciamos el juego automáticamente, esperamos a que los jugadores estén listos
-    }
-
-    [Server]
-    void RefreshPlayersList()
-    {
-        players.Clear();
-        players.AddRange(FindObjectsOfType<PlayerManager>());
-        Debug.Log($"Jugadores encontrados: {players.Count}");
+        Debug.Log("[Server] RoundManager inicializado. Esperando inicio del juego...");
     }
 
     void Update()
@@ -48,7 +48,7 @@ public class RoundManager : NetworkBehaviour
         if (Time.time - lastLogTime >= logInterval)
         {
             lastLogTime = Time.time;
-            Debug.Log($"Round {currentRound} - Time remaining: {timeRemaining:F2} seconds.");
+            Debug.Log($"[Server] Round {currentRound} - Time remaining: {timeRemaining:F2} seconds.");
         }
 
         if (timeRemaining <= 0f)
@@ -57,62 +57,109 @@ public class RoundManager : NetworkBehaviour
         }
     }
 
-    // Método público para iniciar el juego cuando todos los jugadores estén listos
+    // Método para que los clientes obtengan el tiempo restante
+    public float GetTimeRemaining()
+    {
+        return timeRemaining;
+    }
+
+    // Método para iniciar el juego cuando todos los jugadores estén listos
     [Server]
     public void StartGame()
     {
+        if (!isServer) return;
+
         if (!gameStarted)
         {
             gameStarted = true;
-            Debug.Log("¡El juego ha comenzado oficialmente!");
+            Debug.Log("[Server] ¡El juego ha comenzado oficialmente!");
+
+            // Notificar a todos los clientes
+            RpcNotifyGameStarted();
+
+            // Iniciar la primera ronda
             StartRound();
         }
         else
         {
-            Debug.Log("El juego ya está en curso.");
+            Debug.Log("[Server] El juego ya está en curso.");
         }
+    }
+
+    [ClientRpc]
+    void RpcNotifyGameStarted()
+    {
+        Debug.Log("[Client] ¡El juego ha comenzado oficialmente!");
     }
 
     [Server]
     void StartRound()
     {
+        if (!isServer) return;
+
         currentRound++;
         timeRemaining = roundTime;
         isRoundActive = true;
-        Debug.Log($"Round {currentRound} started with {timeRemaining} seconds.");
+        Debug.Log($"[Server] Round {currentRound} started with {timeRemaining} seconds.");
 
         // Para rondas posteriores a la primera, asignar nuevas cartas
         if (currentRound > 1)
         {
+            // Buscar todos los jugadores
+            PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+
             foreach (var player in players)
             {
                 if (player != null)
                 {
-                    // Primero asignar una nueva carta
-                    player.CmdAssignNewCard();
+                    // Primero resetear el estado de jugada
+                    player.RpcResetCardPlay();
 
-                    // Luego resetear el estado de juego
-                    player.CmdResetHasPlayedCard();
+                    // Luego asignar nueva carta
+                    player.CmdAssignNewCard();
                 }
             }
         }
 
-        RpcNotifyPlayersRoundStart(roundTime);
+        // Notificar a todos los clientes del inicio de ronda
+        RpcNotifyRoundStart(currentRound, roundTime);
+    }
+
+    [ClientRpc]
+    void RpcNotifyRoundStart(int round, float time)
+    {
+        Debug.Log($"[Client] Round {round} ha comenzado con {time} segundos.");
     }
 
     [Server]
     void EndRound()
     {
+        if (!isServer) return;
+
         isRoundActive = false;
-        Debug.Log($"Round {currentRound} ended.");
+        Debug.Log($"[Server] Round {currentRound} ended.");
+
+        // Notificar a todos los clientes
+        RpcNotifyRoundEnded(currentRound);
 
         // Forzar jugar carta a los jugadores que no lo hicieron
+        PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+
         foreach (var player in players)
         {
             if (player != null && !player.HasPlayedCard)
             {
-                Debug.Log($"Jugador {player.netId} no jugó. Jugando carta automática...");
-                player.CmdPlayRandomCard();
+                Debug.Log($"[Server] Jugador {player.netId} no jugó. Jugando carta automática...");
+
+                NetworkConnectionToClient conn = player.GetComponent<NetworkIdentity>().connectionToClient;
+                if (conn != null)
+                {
+                    player.CmdPlayRandomCard(conn);
+                }
+                else
+                {
+                    Debug.LogError($"[Server] No se pudo obtener la conexión del jugador {player.netId}");
+                }
             }
         }
 
@@ -120,21 +167,39 @@ public class RoundManager : NetworkBehaviour
         StartCoroutine(ProcessPlayedCards());
     }
 
+    [ClientRpc]
+    void RpcNotifyRoundEnded(int round)
+    {
+        Debug.Log($"[Client] Round {round} ha terminado.");
+    }
+
     [Server]
     IEnumerator ProcessPlayedCards()
     {
-        Debug.Log("Procesando cartas jugadas y preparando nueva ronda...");
+        Debug.Log("[Server] Procesando cartas jugadas y preparando nueva ronda...");
 
         // Esperar un momento para que todas las acciones de juego se completen
         yield return new WaitForSeconds(1f);
 
-        // Eliminar las cartas jugadas
+        // Eliminar las cartas jugadas de todos los jugadores
+        PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+
         foreach (var player in players)
         {
             if (player != null)
             {
-                Debug.Log($"Eliminando carta jugada del jugador {player.netId}");
-                player.CmdRemovePlayedCard();
+                Debug.Log($"[Server] Eliminando carta jugada del jugador {player.netId}");
+
+                //Paras la conexion explicitamente¿
+                NetworkConnectionToClient conn = player.GetComponent<NetworkIdentity>().connectionToClient;
+                if (conn != null)
+                {
+                    player.CmdRemovePlayedCard(conn);
+                }
+                else
+                {
+                    Debug.LogError($"[Server] No se pudo obtener la conexión del jugador {player.netId}");
+                }
             }
         }
 
@@ -144,15 +209,5 @@ public class RoundManager : NetworkBehaviour
         // Iniciar nueva ronda
         StartRound();
     }
-
-    [ClientRpc]
-    void RpcNotifyPlayersRoundStart(float duration)
-    {
-        Debug.Log($"¡Nueva ronda iniciada! Tienes {duration} segundos para jugar.");
-    }
-
-    public float GetTimeRemaining()
-    {
-        return timeRemaining;
-    }
 }
+

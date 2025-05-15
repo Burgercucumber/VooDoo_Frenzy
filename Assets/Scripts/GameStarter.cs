@@ -3,15 +3,21 @@ using Mirror;
 
 public class GameStarter : NetworkBehaviour
 {
-    // Variable estática para tracking del estado del juego
-    private static bool gameHasStarted = false;
+    [SyncVar]
+    private bool gameHasStarted = false;
 
     // Este método debe ser llamado después de que un jugador reciba sus cartas
-    // por ejemplo, al final del método CmdDealCards() o desde el evento del botón
     [Command(requiresAuthority = false)]
     public void CmdRequestGameStart(NetworkConnectionToClient conn = null)
     {
-        if (gameHasStarted) return;
+        if (!isServer) return;
+
+        if (gameHasStarted)
+        {
+            Debug.Log("[Server] Intento de iniciar el juego, pero ya está iniciado.");
+            return;
+        }
+
         // Verificar si todos los jugadores tienen cartas
         CheckAllPlayersReady();
     }
@@ -19,25 +25,59 @@ public class GameStarter : NetworkBehaviour
     [Server]
     private void CheckAllPlayersReady()
     {
-        Debug.Log("Verificando si todos los jugadores están listos...");
+        if (!isServer) return;
+
+        Debug.Log("[Server] Verificando si todos los jugadores están listos...");
+
         // Buscar todos los jugadores en la escena
         PlayerManager[] allPlayers = GameObject.FindObjectsOfType<PlayerManager>();
+
+        if (allPlayers.Length == 0)
+        {
+            Debug.LogError("[Server] No se encontraron jugadores en la escena.");
+            return;
+        }
+
         // Verificar si todos los jugadores tienen al menos una carta
         bool allReady = true;
         foreach (PlayerManager player in allPlayers)
         {
-            if (!PlayerHasCards(player))
+            if (player == null || player.PlayerArea == null)
             {
-                Debug.Log($"Jugador {player.netId} aún no está listo.");
+                Debug.LogError("[Server] Jugador o área de jugador es nula");
+                allReady = false;
+                break;
+            }
+
+            bool hasCards = false;
+
+            // Contar directamente las cartas bajo el área del jugador
+            foreach (Transform child in player.PlayerArea.transform)
+            {
+                if (child.CompareTag("Card"))
+                {
+                    hasCards = true;
+                    break;
+                }
+            }
+
+            if (!hasCards)
+            {
+                Debug.Log($"[Server] Jugador {player.netId} aún no está listo (no tiene cartas).");
                 allReady = false;
                 break;
             }
         }
+
         // Si todos están listos, iniciar el juego
         if (allReady)
         {
-            Debug.Log("Todos los jugadores están listos. Iniciando juego...");
+            Debug.Log("[Server] Todos los jugadores están listos. Iniciando juego...");
             gameHasStarted = true;
+
+            // Notificar a todos los clientes
+            RpcNotifyGameStarted();
+
             // Buscar el RoundManager y comenzar el juego
             RoundManager roundManager = GameObject.FindObjectOfType<RoundManager>();
             if (roundManager != null)
@@ -46,33 +86,38 @@ public class GameStarter : NetworkBehaviour
             }
             else
             {
-                Debug.LogError("No se encontró el RoundManager en la escena.");
+                Debug.LogError("[Server] No se encontró el RoundManager en la escena.");
             }
         }
         else
         {
-            Debug.Log("Aún no están todos los jugadores listos.");
+            Debug.Log("[Server] Aún no están todos los jugadores listos.");
         }
     }
 
-    // Método para verificar si un jugador ya tiene cartas repartidas
-    private bool PlayerHasCards(PlayerManager player)
+    [ClientRpc]
+    void RpcNotifyGameStarted()
     {
-        // Verificar si el jugador tiene cartas en su área
-        GameObject[] allCards = GameObject.FindGameObjectsWithTag("Card");
-        foreach (GameObject card in allCards)
-        {
-            if (card.transform.parent == player.PlayerArea.transform)
-            {
-                return true;
-            }
-        }
-        return false;
+        Debug.Log("[Client] El juego ha iniciado oficialmente.");
     }
 
     // Método para resetear el estado del juego (útil para partidas nuevas)
-    public static void ResetGameState()
+    [Server]
+    public void ResetGameState()
     {
+        if (!isServer) return;
+
         gameHasStarted = false;
+        Debug.Log("[Server] Estado del juego reseteado.");
+
+        // Notificar a todos los clientes
+        RpcNotifyGameReset();
+    }
+
+    [ClientRpc]
+    void RpcNotifyGameReset()
+    {
+        Debug.Log("[Client] El estado del juego ha sido reseteado.");
     }
 }
+

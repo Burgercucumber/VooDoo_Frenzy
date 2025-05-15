@@ -7,6 +7,7 @@ public class PlayerManager : NetworkBehaviour
 {
     public GameObject Card;
     public GameObject Card1;
+
     // Estas son las variables para referenciar las áreas del juego
     [SerializeField] private GameObject playerArea;
     [SerializeField] private GameObject enemyArea;
@@ -49,36 +50,20 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
+    // Variable sincronizada para controlar si el jugador ha jugado una carta
     [SyncVar(hook = nameof(OnPlayedCardChanged))]
     private bool hasPlayedCard = false;
 
-    // Referencia sincronizada a la carta jugada
-    [SyncVar]
-    private NetworkIdentity playedCardIdentity;
-
     public bool HasPlayedCard => hasPlayedCard;
 
-    // Propiedad para acceder a la carta jugada como GameObject
-    public GameObject PlayedCard
-    {
-        get
-        {
-            if (playedCardIdentity != null)
-            {
-                return playedCardIdentity.gameObject;
-            }
-            return null;
-        }
-    }
-
+    // Lista de cartas disponibles para repartir
     List<GameObject> cards = new List<GameObject>();
 
     public override void OnStartClient()
     {
         base.OnStartClient();
 
-        // Ya no necesitamos asignar las referencias aquí ya que usamos propiedades
-        // que buscan los objetos cuando son necesarios
+        // No es necesario buscar las referencias aquí, las propiedades lo hacen automáticamente
     }
 
     [Server]
@@ -91,23 +76,20 @@ public class PlayerManager : NetworkBehaviour
         Debug.Log("Cartas disponibles en el servidor: " + cards.Count);
     }
 
+    // Método para repartir cartas iniciales
     [Command]
     public void CmdDealCards()
     {
         for (int i = 0; i < 5; i++)
         {
             GameObject card = Instantiate(cards[Random.Range(0, cards.Count)], new Vector2(0, 0), Quaternion.identity);
-            card.transform.SetParent(PlayerArea.transform, false);
-
-            DragDrop drag = card.GetComponent<DragDrop>();
-            drag.OwnerPlayerManager = this;
-
             NetworkServer.Spawn(card, connectionToClient);
-            RpcShowCard(card, "Dealt");
+
+            // En vez de establecer el padre directamente, usamos RPC para asignarlo
+            RpcSetCardParent(card, "Player");
         }
 
         // Después de repartir cartas, comprobamos si todos los jugadores están listos
-        // para iniciar el juego
         GameStarter starter = GameObject.FindObjectOfType<GameStarter>();
         if (starter != null)
         {
@@ -117,12 +99,12 @@ public class PlayerManager : NetworkBehaviour
         {
             Debug.LogError("No se encontró GameStarter en la escena.");
         }
-
     }
 
+    // Método para jugar una carta
     public void PlayCard(GameObject card)
     {
-        if (!HasPlayedCard)
+        if (!hasPlayedCard)
         {
             CmdPlayCard(card);
         }
@@ -138,140 +120,219 @@ public class PlayerManager : NetworkBehaviour
         if (hasPlayedCard) return;
 
         hasPlayedCard = true;
-        playedCardIdentity = card.GetComponent<NetworkIdentity>();
 
-        // Verificación de la carta jugada
-        Debug.Log("Carta jugada asignada: " + card.name);
+        // Mover la carta a la zona de juego
+        RpcSetCardParent(card, "DropZone");
 
-        RpcShowCard(card, "Played");
+        // Almacenar una referencia a la carta jugada en el servidor
+        NetworkIdentity cardNetId = card.GetComponent<NetworkIdentity>();
+        currentPlayedCardNetId = cardNetId.netId;
 
+        Debug.Log($"[Server] Jugador {netId} jugó la carta {card.name} con netId {currentPlayedCardNetId}");
+
+        // Actualizar el contador de turnos en el gestor del juego
         GameManager gm = GameObject.Find("GameManager").GetComponent<GameManager>();
-        gm.UpdateTurnsPlayed();
-    }
-
-    // Eliminar la carta jugada
-    [Command]
-    public void CmdRemovePlayedCard()
-    {
-        Debug.Log("CmdRemovePlayedCard llamada");
-
-        if (playedCardIdentity != null)
+        if (gm != null)
         {
-            GameObject cardToDestroy = playedCardIdentity.gameObject;
-            Debug.Log("Carta jugada encontrada: " + cardToDestroy.name);
-
-            // Aquí destruimos la carta
-            NetworkServer.Destroy(cardToDestroy);
-            playedCardIdentity = null;
-
-            Debug.Log("Carta destruida correctamente.");
-        }
-        else
-        {
-            Debug.Log("No hay carta jugada para eliminar.");
-        }
-    }
-
-    [Command]
-    public void CmdPlayRandomCard()
-    {
-        if (hasPlayedCard) return;
-
-        // Busca una carta en el área del jugador (la mano)
-        GameObject[] handCards = GameObject.FindGameObjectsWithTag("Card");
-        List<GameObject> playerCards = new List<GameObject>();
-
-        foreach (GameObject card in handCards)
-        {
-            if (card.transform.parent == PlayerArea.transform)
-            {
-                playerCards.Add(card);
-            }
-        }
-
-        if (playerCards.Count > 0)
-        {
-            // Tomar una carta aleatoria de la mano
-            GameObject selectedCard = playerCards[Random.Range(0, playerCards.Count)];
-            hasPlayedCard = true;
-            playedCardIdentity = selectedCard.GetComponent<NetworkIdentity>();
-
-            RpcShowCard(selectedCard, "Played");
-
-            GameManager gm = GameObject.Find("GameManager").GetComponent<GameManager>();
             gm.UpdateTurnsPlayed();
-            return;
         }
-
-        // Si no tiene cartas, asignamos una aleatoria
-        GameObject newCard = Instantiate(cards[Random.Range(0, cards.Count)], new Vector2(0, 0), Quaternion.identity);
-        newCard.transform.SetParent(PlayerArea.transform, false);
-
-        DragDrop drag = newCard.GetComponent<DragDrop>();
-        drag.OwnerPlayerManager = this;
-
-        NetworkServer.Spawn(newCard, connectionToClient);
-        RpcShowCard(newCard, "Played");
-
-        hasPlayedCard = true;
-        playedCardIdentity = newCard.GetComponent<NetworkIdentity>();
-
-        GameManager gmFallback = GameObject.Find("GameManager").GetComponent<GameManager>();
-        gmFallback.UpdateTurnsPlayed();
     }
 
-    [ClientRpc]
-    public void RpcResetCardPlay()
+    // Variable para almacenar el NetworkId de la carta jugada actualmente
+    [SyncVar]
+    private uint currentPlayedCardNetId = 0;
+
+    // Método para eliminar la carta jugada (ATENCION)
+    [Command(requiresAuthority=false)]
+    public void CmdRemovePlayedCard(NetworkConnectionToClient conn=null)
     {
-        Debug.Log("RpcResetCardPlay llamado - reseteando hasPlayedCard");
-        hasPlayedCard = false;
-    }
-
-    [Command]
-    public void CmdAssignNewCard()
-    {
-        Debug.Log("CmdAssignNewCard llamado - asignando nueva carta");
-        GameObject prefab = cards[Random.Range(0, cards.Count)];
-        GameObject newCard = Instantiate(prefab, new Vector2(0, 0), Quaternion.identity);
-        newCard.transform.SetParent(PlayerArea.transform, false);
-
-        DragDrop drag = newCard.GetComponent<DragDrop>();
-        drag.OwnerPlayerManager = this;
-
-        NetworkServer.Spawn(newCard, connectionToClient);
-        RpcShowCard(newCard, "Dealt");
-    }
-
-    [ClientRpc]
-    void RpcShowCard(GameObject card, string type)
-    {
-        if (type == "Dealt")
+        Debug.Log($"[Server] Removiendo carta jugada para jugador {netId}");
+        
+        if (currentPlayedCardNetId != 0)
         {
-            if (isOwned)
+            // Buscar el objeto por su NetworkId
+            if (NetworkServer.spawned.TryGetValue(currentPlayedCardNetId, out NetworkIdentity cardIdentity))
             {
-                card.transform.SetParent(PlayerArea.transform, false);
+                Debug.Log($"[Server] Encontrada carta jugada con netId {currentPlayedCardNetId}");
+
+                // Notificar a los clientes antes de destruir
+                RpcNotifyCardRemoval();
+
+                // Destruir la carta en el servidor
+                NetworkServer.Destroy(cardIdentity.gameObject);
+
+                // Resetear la referencia
+                currentPlayedCardNetId = 0;
+
+                Debug.Log($"[Server] Carta jugada destruida correctamente");
             }
             else
             {
-                card.transform.SetParent(EnemyArea.transform, false);
-                card.GetComponent<CardFlipper>().Flip();
+                Debug.LogWarning($"[Server] No se encontró la carta con netId {currentPlayedCardNetId}");
             }
         }
-        else if (type == "Played")
+        else
         {
-            card.transform.SetParent(DropZone.transform, false);
-            if (!isOwned)
-            {
-                card.GetComponent<CardFlipper>().Flip();
-            }
+            Debug.Log($"[Server] No hay carta jugada para eliminar");
         }
     }
 
+    [ClientRpc]
+    private void RpcNotifyCardRemoval()
+    {
+        Debug.Log($"[Client] La carta jugada será eliminada");
+    }
+
+    // Método para jugar una carta aleatoria (para turnos automáticos)
+    [Command(requiresAuthority = false)]
+    public void CmdPlayRandomCard(NetworkConnectionToClient conn = null)
+    {
+        if (hasPlayedCard) return;
+
+        // Buscar todas las cartas en la escena
+        GameObject[] allCards = GameObject.FindGameObjectsWithTag("Card");
+        List<GameObject> playerCards = new List<GameObject>();
+
+        // Buscar cartas que sean de este jugador
+        foreach (GameObject card in allCards)
+        {
+            if (card.transform.parent == null) continue;
+
+            // Si la carta está en el área del jugador
+            if (card.transform.parent.name == "AreaJugador")
+            {
+                NetworkIdentity cardNetId = card.GetComponent<NetworkIdentity>();
+                if (cardNetId != null && cardNetId.connectionToClient == connectionToClient)
+                {
+                    playerCards.Add(card);
+                }
+            }
+        }
+
+        // Si tiene cartas, jugar una aleatoria
+        if (playerCards.Count > 0)
+        {
+            GameObject selectedCard = playerCards[Random.Range(0, playerCards.Count)];
+            hasPlayedCard = true;
+
+            // Mover la carta a la zona de juego
+            RpcSetCardParent(selectedCard, "DropZone");
+
+            // Almacenar la referencia
+            NetworkIdentity cardNetId = selectedCard.GetComponent<NetworkIdentity>();
+            currentPlayedCardNetId = cardNetId.netId;
+
+            Debug.Log($"[Server] Jugador {netId} jugó automáticamente la carta {selectedCard.name}");
+
+            // Actualizar el contador de turnos
+            GameManager gm = GameObject.Find("GameManager").GetComponent<GameManager>();
+            if (gm != null)
+            {
+                gm.UpdateTurnsPlayed();
+            }
+            return;
+        }
+
+        // Si no tiene cartas, asignar una nueva y jugarla
+        GameObject newCard = Instantiate(cards[Random.Range(0, cards.Count)], new Vector2(0, 0), Quaternion.identity);
+        NetworkServer.Spawn(newCard, connectionToClient);
+
+        hasPlayedCard = true;
+
+        // Mover la carta directamente a la zona de juego
+        RpcSetCardParent(newCard, "DropZone");
+
+        // Almacenar la referencia
+        NetworkIdentity newCardNetId = newCard.GetComponent<NetworkIdentity>();
+        currentPlayedCardNetId = newCardNetId.netId;
+
+        Debug.Log($"[Server] Jugador {netId} jugó una nueva carta automáticamente");
+
+        // Actualizar contador de turnos
+        GameManager gmFallback = GameObject.Find("GameManager").GetComponent<GameManager>();
+        if (gmFallback != null)
+        {
+            gmFallback.UpdateTurnsPlayed();
+        }
+    }
+
+    // Método para resetear el estado de juego después de cada ronda
+    [ClientRpc]
+    public void RpcResetCardPlay()
+    {
+        Debug.Log($"[Client] Reset del estado de juego para jugador {netId}");
+        // No necesitamos cambiar hasPlayedCard aquí, ya que es una SyncVar
+
+        if (isServer || isLocalPlayer)
+        {
+            CmdResetHasPlayedCard();
+        }
+    }
+
+    // Método para asignar una nueva carta al jugador
+    [Command (requiresAuthority = false)]
+    public void CmdAssignNewCard(NetworkConnectionToClient conn = null)
+    {
+        Debug.Log($"[Server] Asignando nueva carta al jugador {netId}");
+
+        GameObject prefab = cards[Random.Range(0, cards.Count)];
+        GameObject newCard = Instantiate(prefab, new Vector2(0, 0), Quaternion.identity);
+
+        NetworkServer.Spawn(newCard, connectionToClient);
+
+        // Asignar la carta al área del jugador
+        RpcSetCardParent(newCard, "Player");
+    }
+
+    [ClientRpc]
+    void RpcSetCardParent(GameObject card, string areaType)
+    {
+        if (card == null) return;
+
+        Debug.Log($"[Client] Estableciendo padre para carta: {areaType}");
+
+        switch (areaType)
+        {
+            case "Player":
+                if (isOwned) // Si soy el dueño de esta carta
+                {
+                    card.transform.SetParent(PlayerArea.transform, false);
+                }
+                else // Si es una carta del oponente
+                {
+                    card.transform.SetParent(EnemyArea.transform, false);
+                    // Voltear la carta para ocultar su contenido al jugador
+                    CardFlipper flipper = card.GetComponent<CardFlipper>();
+                    if (flipper != null)
+                    {
+                        flipper.Flip();
+                    }
+                }
+                break;
+
+            case "DropZone":
+                card.transform.SetParent(DropZone.transform, false);
+                // Siempre mostrar la carta al entrar en el área de juego
+                if (!isOwned)
+                {
+                    CardFlipper flipper = card.GetComponent<CardFlipper>();
+                    if (flipper != null)
+                    {
+                        flipper.Flip(); // Mostrar la carta, no importa su estado anterior
+                    }
+                }
+                break;
+        }
+    }
+
+
+    // Hook para cuando cambia la variable hasPlayedCard
     void OnPlayedCardChanged(bool oldValue, bool newValue)
     {
-        Debug.Log($"[SyncVar] hasPlayedCard cambiado: {oldValue} → {newValue}");
+        Debug.Log($"[{(isServer ? "Server" : "Client")}] Jugador {netId} - hasPlayedCard: {oldValue} → {newValue}");
     }
 
+    // Métodos para target RPCs (si se necesitan)
     [Command]
     public void CmdTargetSelfCard() => TargetSelfCard();
 
@@ -288,6 +349,7 @@ public class PlayerManager : NetworkBehaviour
     [TargetRpc]
     void TargetOtherCard(NetworkConnection target) => Debug.Log("Targeted by Other!");
 
+    // Método para incrementar clicks en una carta
     [Command]
     public void CmdIncrementClick(GameObject card)
     {
@@ -298,14 +360,19 @@ public class PlayerManager : NetworkBehaviour
     void RpcIncrementClick(GameObject card)
     {
         var click = card.GetComponent<incrementClick>();
-        click.NumberOfClicks++;
-        Debug.Log("This card has been clicked " + click.NumberOfClicks + " times!");
+        if (click != null)
+        {
+            click.NumberOfClicks++;
+            Debug.Log("This card has been clicked " + click.NumberOfClicks + " times!");
+        }
     }
 
+    // Método para resetear el estado de jugada
     [Command]
     public void CmdResetHasPlayedCard()
     {
         hasPlayedCard = false;
-        Debug.Log("hasPlayedCard ha sido reseteado a false");
+        Debug.Log($"[Server] hasPlayedCard reseteado a false para jugador {netId}");
     }
 }
+
