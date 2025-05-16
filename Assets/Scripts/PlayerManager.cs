@@ -184,47 +184,62 @@ public class PlayerManager : NetworkBehaviour
     }
 
     // Método para jugar una carta aleatoria (para turnos automáticos)
-    [Command(requiresAuthority = false)]
-    public void CmdPlayRandomCard(NetworkConnectionToClient conn = null)
+
+    // Método para jugar una carta aleatoria (para turnos automáticos) - CORREGIDO
+    [Server]
+    public void PlayRandomCard()
     {
         if (hasPlayedCard) return;
 
-        // Buscar todas las cartas en la escena
-        GameObject[] allCards = GameObject.FindGameObjectsWithTag("Card");
+        Debug.Log($"[Server] Intentando jugar carta aleatoria para jugador {netId}");
+
+        // Lista para almacenar las cartas específicas de este jugador
         List<GameObject> playerCards = new List<GameObject>();
 
-        // Buscar cartas que sean de este jugador
-        foreach (GameObject card in allCards)
+        // Encontrar todas las cartas que pertenecen a este jugador
+        foreach (var kvp in NetworkServer.spawned)
         {
-            if (card.transform.parent == null) continue;
+            GameObject obj = kvp.Value.gameObject;
 
-            // Si la carta está en el área del jugador
-            if (card.transform.parent.name == "AreaJugador")
+            // Verificar si es una carta (tiene el tag "Card")
+            if (obj.CompareTag("Card"))
             {
-                NetworkIdentity cardNetId = card.GetComponent<NetworkIdentity>();
-                if (cardNetId != null && cardNetId.connectionToClient == connectionToClient)
+                NetworkIdentity cardNetId = obj.GetComponent<NetworkIdentity>();
+
+                // Si la carta pertenece a este jugador y no está en la zona de juego
+                if (cardNetId.connectionToClient == connectionToClient)
                 {
-                    playerCards.Add(card);
+                    // Verificamos que la carta no esté ya en la zona de juego
+                    Transform parent = obj.transform.parent;
+                    if (parent != null && parent.name != "Limite" && parent.name != "DropZone")
+                    {
+                        playerCards.Add(obj);
+                        Debug.Log($"[Server] Carta {obj.name} (netId: {cardNetId.netId}) encontrada para jugador {netId}");
+                    }
                 }
             }
         }
 
-        // Si tiene cartas, jugar una aleatoria
+        Debug.Log($"[Server] Encontradas {playerCards.Count} cartas para jugador {netId}");
+
         if (playerCards.Count > 0)
         {
+            // Seleccionar una carta aleatoria
             GameObject selectedCard = playerCards[Random.Range(0, playerCards.Count)];
             hasPlayedCard = true;
+
+            Debug.Log($"[Server] Seleccionada carta {selectedCard.name} para jugar automáticamente");
 
             // Mover la carta a la zona de juego
             RpcSetCardParent(selectedCard, "DropZone");
 
-            // Almacenar la referencia
+            // Guardar la referencia de la carta jugada
             NetworkIdentity cardNetId = selectedCard.GetComponent<NetworkIdentity>();
             currentPlayedCardNetId = cardNetId.netId;
 
-            Debug.Log($"[Server] Jugador {netId} jugó automáticamente la carta {selectedCard.name}");
+            Debug.Log($"[Server] Jugador {netId} jugó automáticamente la carta {selectedCard.name} con netId {currentPlayedCardNetId}");
 
-            // Actualizar el contador de turnos
+            // Actualizar el contador de turnos en el gestor del juego
             GameManager gm = GameObject.Find("GameManager").GetComponent<GameManager>();
             if (gm != null)
             {
@@ -233,22 +248,19 @@ public class PlayerManager : NetworkBehaviour
             return;
         }
 
-        // Si no tiene cartas, asignar una nueva y jugarla
+        // Si no se encontraron cartas, crear una nueva (como fallback)
+        Debug.Log($"[Server] No se encontraron cartas para el jugador {netId}, creando nueva carta");
         GameObject newCard = Instantiate(cards[Random.Range(0, cards.Count)], new Vector2(0, 0), Quaternion.identity);
         NetworkServer.Spawn(newCard, connectionToClient);
 
         hasPlayedCard = true;
-
-        // Mover la carta directamente a la zona de juego
         RpcSetCardParent(newCard, "DropZone");
 
-        // Almacenar la referencia
         NetworkIdentity newCardNetId = newCard.GetComponent<NetworkIdentity>();
         currentPlayedCardNetId = newCardNetId.netId;
 
-        Debug.Log($"[Server] Jugador {netId} jugó una nueva carta automáticamente");
+        Debug.Log($"[Server] Jugador {netId} jugó una nueva carta automáticamente con netId {currentPlayedCardNetId}");
 
-        // Actualizar contador de turnos
         GameManager gmFallback = GameObject.Find("GameManager").GetComponent<GameManager>();
         if (gmFallback != null)
         {

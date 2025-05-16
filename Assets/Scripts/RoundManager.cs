@@ -139,10 +139,8 @@ public class RoundManager : NetworkBehaviour
         isRoundActive = false;
         Debug.Log($"[Server] Round {currentRound} ended.");
 
-        // Notificar a todos los clientes
         RpcNotifyRoundEnded(currentRound);
 
-        // Forzar jugar carta a los jugadores que no lo hicieron
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
 
         foreach (var player in players)
@@ -151,21 +149,13 @@ public class RoundManager : NetworkBehaviour
             {
                 Debug.Log($"[Server] Jugador {player.netId} no jugó. Jugando carta automática...");
 
-                NetworkConnectionToClient conn = player.GetComponent<NetworkIdentity>().connectionToClient;
-                if (conn != null)
-                {
-                    player.CmdPlayRandomCard(conn);
-                }
-                else
-                {
-                    Debug.LogError($"[Server] No se pudo obtener la conexión del jugador {player.netId}");
-                }
+                player.PlayRandomCard(); // <- llamada directa en el servidor
             }
         }
 
-        // Procesar las cartas jugadas y preparar nueva ronda
         StartCoroutine(ProcessPlayedCards());
     }
+
 
     [ClientRpc]
     void RpcNotifyRoundEnded(int round)
