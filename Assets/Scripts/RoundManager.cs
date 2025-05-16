@@ -8,7 +8,7 @@ public class RoundManager : NetworkBehaviour
     public float roundTime = 15f;
 
     [SyncVar]
-    private float timeRemaining;
+    public float timeRemaining;
 
     [SyncVar]
     private bool isRoundActive = false;
