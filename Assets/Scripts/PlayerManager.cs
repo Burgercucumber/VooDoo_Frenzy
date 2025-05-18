@@ -21,6 +21,7 @@ public class PlayerManager : NetworkBehaviour
             if (playerArea == null)
             {
                 playerArea = GameObject.Find("AreaJugador");
+                //playerArea = GameObject.Find("AreaJugador");
             }
             return playerArea;
         }
