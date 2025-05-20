@@ -1,25 +1,32 @@
 using UnityEngine;
 
 public static class CardBattleLogic
-{
-    public static int CompareCards(CardData cardA, CardData cardB)
+{         
+    public enum BattleResult
     {
-        // Primero se compara por tipo elemental
+        WinA,
+        WinB,
+        Draw
+    }
+
+    public static BattleResult CompareCards(CardData cardA, CardData cardB)
+    {
         if (Beats(cardA.element, cardB.element))
-            return 1; // A gana
+            return BattleResult.WinA;
         else if (Beats(cardB.element, cardA.element))
-            return -1; // B gana
+            return BattleResult.WinB;
         else
         {
-            // Si no hay ventaja elemental, se compara por estrellas
             if (cardA.starLevel > cardB.starLevel)
-                return 1;
+                return BattleResult.WinA;
             else if (cardB.starLevel > cardA.starLevel)
-                return -1;
+                return BattleResult.WinB;
             else
-                return 0; // Empate
+                return BattleResult.Draw;
         }
     }
+
+    //Boton gana a alfiler, alfiler gana a tela, tela gana a algodon, algodon gana a alfiler
 
     private static bool Beats(CardData.ElementType a, CardData.ElementType b)
     {

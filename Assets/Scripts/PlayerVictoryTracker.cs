@@ -1,9 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
+using UnityEngine;
+using Mirror;
 
-public class PlayerVictoryTracker : MonoBehaviour
+public static class PlayerVictoryTracker
 {
     private struct Victory
     {
@@ -17,48 +17,71 @@ public class PlayerVictoryTracker : MonoBehaviour
         }
     }
 
-    private List<Victory> victories = new List<Victory>();
+    private static Dictionary<PlayerManager, List<Victory>> victories = new Dictionary<PlayerManager, List<Victory>>();
 
-    public void AddVictory(CardData card)
+    public static void AddVictory(PlayerManager player)
     {
-        if (IsVictoryValid(card))
+        CardData cardData = GetCardDataFromPlayedCard(player);
+        if (cardData == null) return;
+
+        if (!victories.ContainsKey(player))
+            victories[player] = new List<Victory>();
+
+        Victory newVictory = new Victory(cardData.element, cardData.color);
+
+        if (IsVictoryValid(player, newVictory))
         {
-            victories.Add(new Victory(card.element, card.color));
-            ShowVictoryUI(card);
+            victories[player].Add(newVictory);
+            ShowVictoryUI(cardData);
         }
     }
 
-    public bool HasWon()
+    private static CardData GetCardDataFromPlayedCard(PlayerManager player)
     {
-        return CheckFourDifferentElements() || CheckFourSameElementWithColorLimit();
+        uint netId = player.GetCurrentPlayedCardNetId();
+        if (NetworkServer.spawned.TryGetValue(netId, out NetworkIdentity identity))
+        {
+            return identity.GetComponent<CardData>();
+        }
+        return null;
     }
 
-    private bool IsVictoryValid(CardData card)
+    private static bool IsVictoryValid(PlayerManager player, Victory newVictory)
     {
-        // No se permite repetir elemento y color exacto
-        foreach (var v in victories)
+        if (!victories.ContainsKey(player))
+            return true;
+
+        foreach (var v in victories[player])
         {
-            if (v.element == card.element && v.color == card.color)
+            if (v.element == newVictory.element && v.color == newVictory.color)
                 return false;
         }
 
         return true;
     }
 
-    private bool CheckFourDifferentElements()
+    public static bool HasPlayerWon(PlayerManager player)
+    {
+        if (!victories.ContainsKey(player)) return false;
+
+        var winList = victories[player];
+        return CheckFourDifferentElements(winList) || CheckFourSameElementWithColorLimit(winList);
+    }
+
+    private static bool CheckFourDifferentElements(List<Victory> wins)
     {
         HashSet<CardData.ElementType> elements = new HashSet<CardData.ElementType>();
-        foreach (var v in victories)
+        foreach (var v in wins)
             elements.Add(v.element);
 
         return elements.Count >= 4;
     }
 
-    private bool CheckFourSameElementWithColorLimit()
+    private static bool CheckFourSameElementWithColorLimit(List<Victory> wins)
     {
         var grouped = new Dictionary<CardData.ElementType, List<CardData.ColorType>>();
 
-        foreach (var v in victories)
+        foreach (var v in wins)
         {
             if (!grouped.ContainsKey(v.element))
                 grouped[v.element] = new List<CardData.ColorType>();
@@ -86,9 +109,14 @@ public class PlayerVictoryTracker : MonoBehaviour
         return false;
     }
 
-    private void ShowVictoryUI(CardData card)
+    public static void ResetVictories()
     {
-        // Aquí generas el cuadrito en UI con imagen y fondo de color
-        // Por ejemplo: VictoryUIManager.Instance.CreateVictorySquare(card.element, card.color);
+        victories.Clear();
+    }
+
+    private static void ShowVictoryUI(CardData card)
+    {
+        // Llama a la clase encargada de UI
+        // Ejemplo: VictoryUIManager.Instance.CreateVictorySquare(card.element, card.color);
     }
 }

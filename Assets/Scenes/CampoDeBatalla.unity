@@ -290,6 +290,8 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
+  player1: {fileID: 0}
+  player2: {fileID: 0}
   roundTime: 15
   timeRemaining: 0
 --- !u!114 &57042118
@@ -2107,8 +2109,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 297}
-  m_SizeDelta: {x: 200.9506, y: 200.95}
+  m_AnchoredPosition: {x: -7.8514, y: 292}
+  m_SizeDelta: {x: 270.8831, y: 270.8822}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1088462358
 MonoBehaviour:
@@ -2123,14 +2125,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.12941177, g: 0.67058825, b: 0.4039216, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -2413806693520163455, guid: 5e7d1c8f6420a2544b884cbcb02ff7bb, type: 3}
+  m_Sprite: {fileID: 1279268172413472691, guid: 38152714a5459524aa29ad13dde89bf8, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3362,7 +3364,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 815279271578517511, guid: aa3e799acf64c104b9b0b5228e49922c, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -539.99
+      value: -540.01
       objectReference: {fileID: 0}
     - target: {fileID: 815279271578517511, guid: aa3e799acf64c104b9b0b5228e49922c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -3611,6 +3613,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5557049392752130415, guid: 42f32d2aaae7acb449ae99e21fb7c3ca, type: 3}
+      propertyPath: m_Color.b
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5557049392752130415, guid: 42f32d2aaae7acb449ae99e21fb7c3ca, type: 3}
+      propertyPath: m_Color.g
+      value: 0.67058825
+      objectReference: {fileID: 0}
+    - target: {fileID: 5557049392752130415, guid: 42f32d2aaae7acb449ae99e21fb7c3ca, type: 3}
+      propertyPath: m_Color.r
+      value: 0.13333334
+      objectReference: {fileID: 0}
     - target: {fileID: 6255134560658980778, guid: 42f32d2aaae7acb449ae99e21fb7c3ca, type: 3}
       propertyPath: m_Name
       value: AreaJugador
@@ -3693,6 +3707,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1500064964}
     m_Modifications:
+    - target: {fileID: 3856287181362787777, guid: a16a175f0ec9a504a903695ecadcf13d, type: 3}
+      propertyPath: m_Color.b
+      value: 0.2784314
+      objectReference: {fileID: 0}
+    - target: {fileID: 3856287181362787777, guid: a16a175f0ec9a504a903695ecadcf13d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.050980393
+      objectReference: {fileID: 0}
+    - target: {fileID: 3856287181362787777, guid: a16a175f0ec9a504a903695ecadcf13d, type: 3}
+      propertyPath: m_Color.r
+      value: 0.21568628
+      objectReference: {fileID: 0}
     - target: {fileID: 4163541040361372943, guid: a16a175f0ec9a504a903695ecadcf13d, type: 3}
       propertyPath: sceneId
       value: 3786364653

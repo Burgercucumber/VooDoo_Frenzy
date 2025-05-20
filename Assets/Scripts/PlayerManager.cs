@@ -387,5 +387,12 @@ public class PlayerManager : NetworkBehaviour
         hasPlayedCard = false;
         Debug.Log($"[Server] hasPlayedCard reseteado a false para jugador {netId}");
     }
+
+    //
+    public uint GetCurrentPlayedCardNetId()
+    {
+        return currentPlayedCardNetId;
+    }
+
 }
 

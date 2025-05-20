@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 3329308164964507233}
   - component: {fileID: 3625159268873858892}
   - component: {fileID: -7491915371428041189}
+  - component: {fileID: 6816995267860914519}
   m_Layer: 6
   m_Name: Card 1
   m_TagString: Card
@@ -356,7 +357,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CardFront: {fileID: 1649277212354015316, guid: 36b2275dbb302a64da019aacb9d30de4, type: 3}
-  CardBack: {fileID: 6143551298265192478, guid: 84382af141a67394581ea61368c7077d, type: 3}
+  CardBack: {fileID: -6600512586180044344, guid: 23b328d6960bd9542822b6ccdfa9b369, type: 3}
 --- !u!114 &3329308164964507233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -407,3 +408,21 @@ MonoBehaviour:
   syncInterval: 0
   PlayerManager: {fileID: 0}
   NumberOfClicks: 0
+--- !u!114 &6816995267860914519
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3330925503045198327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d23725b099a2b249a1c1d3d56e0683f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  card: {fileID: 0}
+  cardName: Alfiler Morado
+  starLevel: 3
+  element: 1
+  color: 2
+  description: 'Carta de alfiler morado: 2 estrellas'

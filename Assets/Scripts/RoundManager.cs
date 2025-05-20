@@ -5,8 +5,12 @@ using Mirror;
 
 public class RoundManager : NetworkBehaviour
 {
-    public float roundTime = 15f;
+    //
+    public PlayerManager player1;
+    public PlayerManager player2;
+    //
 
+    public float roundTime = 15f;
     [SyncVar]
     public float timeRemaining;
 
@@ -24,10 +28,19 @@ public class RoundManager : NetworkBehaviour
 
     void Start()
     {
+
         if (isServer)
         {
             // Esperar un momento para que los jugadores se conecten
             StartCoroutine(DelayedStart());
+
+            PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+
+            if (players.Length >= 2)
+            {
+                player1 = players[0];
+                player2 = players[1];
+            }
         }
     }
 
@@ -48,7 +61,7 @@ public class RoundManager : NetworkBehaviour
         if (Time.time - lastLogTime >= logInterval)
         {
             lastLogTime = Time.time;
-            Debug.Log($"[Server] Round {currentRound} - Time remaining: {timeRemaining:F2} seconds.");
+            //Debug.Log($"[Server] Round {currentRound} - Time remaining: {timeRemaining:F2} seconds.");
         }
 
         if (timeRemaining <= 0f)
@@ -153,6 +166,7 @@ public class RoundManager : NetworkBehaviour
             }
         }
 
+        ResolveRound();//
         StartCoroutine(ProcessPlayedCards());
     }
 
@@ -199,5 +213,93 @@ public class RoundManager : NetworkBehaviour
         // Iniciar nueva ronda
         StartRound();
     }
+
+    // Añadido 
+
+    [Server]
+    public void ResolveRound()
+    {
+        PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+        if (players.Length < 2)
+        {
+            Debug.LogWarning("No hay suficientes jugadores conectados para resolver la ronda.");
+            return;
+        }
+
+        PlayerManager resolvedPlayer1 = players[0];
+        PlayerManager resolvedPlayer2 = players[1];
+
+        uint netId1 = resolvedPlayer1.GetCurrentPlayedCardNetId();
+        uint netId2 = resolvedPlayer2.GetCurrentPlayedCardNetId();
+
+        Debug.Log($"Resolviendo ronda con cartas NetId: {netId1} y {netId2}");
+
+        if (!NetworkServer.spawned.TryGetValue(netId1, out NetworkIdentity card1NetId) ||
+            !NetworkServer.spawned.TryGetValue(netId2, out NetworkIdentity card2NetId))
+        {
+            Debug.LogWarning("No se encontraron las cartas jugadas.");
+            return;
+        }
+
+        CardData cardData1 = card1NetId.GetComponent<CardData>();
+        CardData cardData2 = card2NetId.GetComponent<CardData>();
+
+        if (cardData1 == null || cardData2 == null)
+        {
+            Debug.LogWarning("No se pudo encontrar CardData en alguna de las cartas.");
+            return;
+        }
+
+        var result = CardBattleLogic.CompareCards(cardData1, cardData2);
+
+        switch (result)
+        {
+            case CardBattleLogic.BattleResult.WinA:
+                Debug.Log($"Jugador {resolvedPlayer1.netId} gana la ronda.");
+                PlayerVictoryTracker.AddVictory(resolvedPlayer1);
+                break;
+
+            case CardBattleLogic.BattleResult.WinB:
+                Debug.Log($"Jugador {resolvedPlayer2.netId} gana la ronda.");
+                PlayerVictoryTracker.AddVictory(resolvedPlayer2);
+                break;
+
+            case CardBattleLogic.BattleResult.Draw:
+                Debug.Log("Empate en la ronda.");
+                break;
+        }
+
+        //resolvedPlayer1.CmdRemovePlayedCard();
+        //resolvedPlayer2.CmdRemovePlayedCard();
+
+        //resolvedPlayer1.RpcResetCardPlay();
+        //resolvedPlayer2.RpcResetCardPlay();
+
+        //resolvedPlayer1.CmdAssignNewCard();
+        //resolvedPlayer2.CmdAssignNewCard();
+
+        CheckForGameVictory();  // <- usar los jugadores válidos
+    }
+
+
+    private void CheckForGameVictory()
+    {
+        PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+        if (players.Length < 2)
+        {
+            Debug.LogWarning("No hay suficientes jugadores para comprobar victoria.");
+            return;
+        }
+
+        if (PlayerVictoryTracker.HasPlayerWon(players[0]))
+        {
+            Debug.Log($"Jugador {players[0].netId} gana el juego!");
+        }
+        else if (PlayerVictoryTracker.HasPlayerWon(players[1]))
+        {
+            Debug.Log($"Jugador {players[1].netId} gana el juego!");
+        }
+    }
+
 }
 

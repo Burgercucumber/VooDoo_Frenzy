@@ -76,7 +76,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -9193212335488233194, guid: acfaae49fe62b244ead4c82232ec6913, type: 3}
+  m_Sprite: {fileID: -1048296310642004668, guid: 5257a27b1f37ed94ea59d808769d1d8a, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -356,8 +356,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ade3deb7090912849a47be63d50cfb9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CardFront: {fileID: -9193212335488233194, guid: acfaae49fe62b244ead4c82232ec6913, type: 3}
-  CardBack: {fileID: 6143551298265192478, guid: 84382af141a67394581ea61368c7077d, type: 3}
+  CardFront: {fileID: -1048296310642004668, guid: 5257a27b1f37ed94ea59d808769d1d8a, type: 3}
+  CardBack: {fileID: -6600512586180044344, guid: 23b328d6960bd9542822b6ccdfa9b369, type: 3}
 --- !u!114 &-8228684071819495767
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -420,8 +420,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d23725b099a2b249a1c1d3d56e0683f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  card: {fileID: 0}
   cardName: Boton carta
-  starLevel: 3
+  starLevel: 2
   element: 0
   color: 0
-  description: Carta de boton rojo
+  description: 'Carta de boton rojo: 3 estrellas'

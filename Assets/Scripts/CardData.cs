@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class CardData : MonoBehaviour
 {
+
+    public CardData card;
     public enum ElementType
     {
         Boton,
