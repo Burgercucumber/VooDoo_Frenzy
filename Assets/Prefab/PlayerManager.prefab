@@ -102,6 +102,9 @@ MonoBehaviour:
   syncInterval: 0
   Card: {fileID: 3330925503045198327, guid: c6e3d03dc8f98d54b80234fe77a9245f, type: 3}
   Card1: {fileID: 3330925503045198327, guid: f0a748823e1f7104d853a483fc871fae, type: 3}
-  PlayerArea: {fileID: 0}
-  EnemyArea: {fileID: 0}
-  DropZone: {fileID: 0}
+  Auxiliar: {fileID: 3330925503045198327, guid: 96c69677b243e8b489b6791c90473895, type: 3}
+  playerArea: {fileID: 0}
+  enemyArea: {fileID: 0}
+  dropZone: {fileID: 0}
+  playerExtraArea: {fileID: 0}
+  enemyExtraArea: {fileID: 0}

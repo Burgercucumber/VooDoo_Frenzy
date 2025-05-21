@@ -8,10 +8,15 @@ public class PlayerManager : NetworkBehaviour
     public GameObject Card;
     public GameObject Card1;
 
+    public GameObject Auxiliar;
+
     // Estas son las variables para referenciar las áreas del juego
     [SerializeField] private GameObject playerArea;
     [SerializeField] private GameObject enemyArea;
     [SerializeField] private GameObject dropZone;
+
+    [SerializeField] private GameObject playerExtraArea;
+    [SerializeField] private GameObject enemyExtraArea;
 
     // Propiedades para acceder a las áreas, con búsqueda automática si es necesario
     public GameObject PlayerArea
@@ -21,6 +26,7 @@ public class PlayerManager : NetworkBehaviour
             if (playerArea == null)
             {
                 playerArea = GameObject.Find("AreaJugador");
+                playerExtraArea = GameObject.Find("ExtraJugador");
                 //playerArea = GameObject.Find("AreaJugador");
             }
             return playerArea;
@@ -34,6 +40,7 @@ public class PlayerManager : NetworkBehaviour
             if (enemyArea == null)
             {
                 enemyArea = GameObject.Find("AreaEnemigo");
+                enemyExtraArea = GameObject.Find("ExtraEnemigo");
             }
             return enemyArea;
         }
@@ -59,6 +66,7 @@ public class PlayerManager : NetworkBehaviour
 
     // Lista de cartas disponibles para repartir
     List<GameObject> cards = new List<GameObject>();
+    List<GameObject> auxiliar = new List<GameObject>();//Intento
 
     public override void OnStartClient()
     {
@@ -74,6 +82,9 @@ public class PlayerManager : NetworkBehaviour
 
         cards.Add(Card);
         cards.Add(Card1);
+
+        auxiliar.Add(Auxiliar);//
+
         Debug.Log("Cartas disponibles en el servidor: " + cards.Count);
     }
 
@@ -88,6 +99,15 @@ public class PlayerManager : NetworkBehaviour
 
             // En vez de establecer el padre directamente, usamos RPC para asignarlo
             RpcSetCardParent(card, "Player");
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject aux = Instantiate(auxiliar[Random.Range(0, auxiliar.Count)], new Vector3(0, 0), Quaternion.identity);
+            NetworkServer.Spawn(aux, connectionToClient);
+
+            // Enviar al área extra del jugador
+            RpcSetAuxParent(aux, "Extra");
         }
 
         // Después de repartir cartas, comprobamos si todos los jugadores están listos
@@ -335,6 +355,37 @@ public class PlayerManager : NetworkBehaviour
                     }
                 }
                 break;
+
+        }
+    }
+
+    [ClientRpc]
+    void RpcSetAuxParent(GameObject aux, string areaType)
+    {
+        if (aux == null) return;
+
+        Debug.Log($"[Client] Estableciendo padre para auxiliar: {areaType}");
+
+        switch (areaType)
+        {
+            case "Extra":
+                if (isOwned)
+                {
+                    aux.transform.SetParent(playerExtraArea.transform, false);
+                }
+                else
+                {
+                    aux.transform.SetParent(enemyExtraArea.transform, false);
+                    CardFlipper flipper = aux.GetComponent<CardFlipper>();
+                    if (flipper != null)
+                    {
+                        flipper.Flip();
+                    }
+                }
+                break;
+            default:
+                Debug.LogWarning("Tipo de área auxiliar desconocido: " + areaType);
+                break;
         }
     }
 
@@ -393,6 +444,9 @@ public class PlayerManager : NetworkBehaviour
     {
         return currentPlayedCardNetId;
     }
+
+    //
+
 
 }
 
