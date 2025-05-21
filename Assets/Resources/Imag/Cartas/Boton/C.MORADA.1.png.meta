@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      C.MORADA.1_0: 2988833117344054409
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

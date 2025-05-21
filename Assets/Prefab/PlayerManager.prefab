@@ -100,8 +100,18 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  Card: {fileID: 3330925503045198327, guid: c6e3d03dc8f98d54b80234fe77a9245f, type: 3}
-  Card1: {fileID: 3330925503045198327, guid: f0a748823e1f7104d853a483fc871fae, type: 3}
+  BotonM1: {fileID: 3330925503045198327, guid: e29b33bc0ad9a1a42a399dded2d46c9d, type: 3}
+  BotonM2: {fileID: 3330925503045198327, guid: 079ca78666e5d6c4f9ba4268f0c24b69, type: 3}
+  BotonM3: {fileID: 3330925503045198327, guid: 307cfb5de5ff3624b84eb03329dc0fab, type: 3}
+  BotonM4: {fileID: 3330925503045198327, guid: 471532f4fc4649643835ba85a4071f34, type: 3}
+  BotonR1: {fileID: 3330925503045198327, guid: 187a2a520541d3d48af3323ec6426aef, type: 3}
+  BotonR2: {fileID: 3330925503045198327, guid: 2b2e3a29c33fadf49b88924ab1b9a102, type: 3}
+  BotonR3: {fileID: 3330925503045198327, guid: 6ae9414f8c5ed7f46999a75c5dd58fd2, type: 3}
+  BotonR4: {fileID: 3330925503045198327, guid: 34c3ad957a3a2b146ba0d1c015fc2148, type: 3}
+  BotonV1: {fileID: 3330925503045198327, guid: 0b19eb7be0069954b8f84283a2fc7edd, type: 3}
+  BotonV2: {fileID: 3330925503045198327, guid: cc5601d0ed009ae4fbf1008b02ce5c96, type: 3}
+  BotonV3: {fileID: 3330925503045198327, guid: 5d053a1c0e26d7247b3ae977f90e4597, type: 3}
+  BotonV4: {fileID: 3330925503045198327, guid: 607c3efdc81179941805ac9b22bc90cf, type: 3}
   Auxiliar: {fileID: 3330925503045198327, guid: 96c69677b243e8b489b6791c90473895, type: 3}
   playerArea: {fileID: 0}
   enemyArea: {fileID: 0}

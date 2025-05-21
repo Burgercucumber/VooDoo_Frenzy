@@ -5,8 +5,22 @@ using Mirror;
 
 public class PlayerManager : NetworkBehaviour
 {
-    public GameObject Card;
-    public GameObject Card1;
+
+    public GameObject BotonM1;
+    public GameObject BotonM2;
+    public GameObject BotonM3;
+    public GameObject BotonM4;
+
+    public GameObject BotonR1;
+    public GameObject BotonR2;
+    public GameObject BotonR3;
+    public GameObject BotonR4;
+
+    public GameObject BotonV1;
+    public GameObject BotonV2;
+    public GameObject BotonV3;
+    public GameObject BotonV4;
+
 
     public GameObject Auxiliar;
 
@@ -80,8 +94,20 @@ public class PlayerManager : NetworkBehaviour
     {
         base.OnStartServer();
 
-        cards.Add(Card);
-        cards.Add(Card1);
+        cards.Add(BotonM1);
+        cards.Add(BotonM2);
+        cards.Add(BotonM3);
+        cards.Add(BotonM4);
+
+        cards.Add(BotonR1);
+        cards.Add(BotonR2);
+        cards.Add(BotonR3);
+        cards.Add(BotonR4);
+
+        cards.Add(BotonV1);
+        cards.Add(BotonV2);
+        cards.Add(BotonV3);
+        cards.Add(BotonV4);
 
         auxiliar.Add(Auxiliar);//
 
@@ -101,12 +127,14 @@ public class PlayerManager : NetworkBehaviour
             RpcSetCardParent(card, "Player");
         }
 
-        for (int i = 0; i < 3; i++)
-        {
-            GameObject aux = Instantiate(auxiliar[Random.Range(0, auxiliar.Count)], new Vector3(0, 0), Quaternion.identity);
-            NetworkServer.Spawn(aux, connectionToClient);
+        List<GameObject> shuffledAux = new List<GameObject>(auxiliar);
+        ShuffleList(shuffledAux);
 
-            // Enviar al área extra del jugador
+        int auxToDeal = Mathf.Min(3, shuffledAux.Count);
+        for (int i = 0; i < auxToDeal; i++)
+        {
+            GameObject aux = Instantiate(shuffledAux[i], Vector3.zero, Quaternion.identity);
+            NetworkServer.Spawn(aux, connectionToClient);
             RpcSetAuxParent(aux, "Extra");
         }
 
@@ -446,6 +474,16 @@ public class PlayerManager : NetworkBehaviour
     }
 
     //
+    private void ShuffleList<T>(List<T> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            int rand = Random.Range(i, list.Count);
+            T temp = list[i];
+            list[i] = list[rand];
+            list[rand] = temp;
+        }
+    }
 
 
 }
