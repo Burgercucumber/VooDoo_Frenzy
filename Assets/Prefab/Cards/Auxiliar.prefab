@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 3625159268873858892}
   - component: {fileID: -7491915371428041189}
   - component: {fileID: -8569945455048609387}
+  - component: {fileID: 6432304571836106956}
   m_Layer: 8
   m_Name: Auxiliar
   m_TagString: Untagged
@@ -389,3 +390,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CardFront: {fileID: 6143551298265192478, guid: 84382af141a67394581ea61368c7077d, type: 3}
   CardBack: {fileID: -5540283103886046044, guid: b1d85995cbe89874daf0cd9bf89a9288, type: 3}
+--- !u!114 &6432304571836106956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3330925503045198327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a91a32f60412d94082f3a5b8583e664, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  auxiliaryType: 0
+  cardName: Estrellas
+  description: Permite subir el nivel en las cartas

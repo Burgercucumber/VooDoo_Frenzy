@@ -394,6 +394,41 @@ public class PlayerManager : NetworkBehaviour
 
         Debug.Log($"[Client] Estableciendo padre para auxiliar: {areaType}");
 
+        // Asegurar que tenga el componente AuxiliaryCard si no lo tiene
+        AuxiliaryCard auxCard = aux.GetComponent<AuxiliaryCard>();
+        if (auxCard == null)
+        {
+            // Si el auxiliar no tiene AuxiliaryCard, añadirlo
+            auxCard = aux.AddComponent<AuxiliaryCard>();
+
+            // Configurar el tipo basado en el nombre del objeto o algún identificador
+            if (aux.name.Contains("LevelUp") || aux.name.Contains("Nivel"))
+            {
+                auxCard.auxiliaryType = AuxiliaryCard.AuxiliaryType.LevelUp;
+                auxCard.cardName = "Subir Nivel";
+                auxCard.description = "Aumenta el nivel de una carta de 2 estrellas o menos";
+            }
+            else if (aux.name.Contains("Element") || aux.name.Contains("Elemento"))
+            {
+                auxCard.auxiliaryType = AuxiliaryCard.AuxiliaryType.ElementChange;
+                auxCard.cardName = "Cambiar Elemento";
+                auxCard.description = "Cambia el elemento de una carta";
+            }
+            else if (aux.name.Contains("Remove") || aux.name.Contains("Remover"))
+            {
+                auxCard.auxiliaryType = AuxiliaryCard.AuxiliaryType.RemoveVictory;
+                auxCard.cardName = "Remover Victoria";
+                auxCard.description = "Elimina una victoria del oponente";
+            }
+            else
+            {
+                // Tipo por defecto si no se puede determinar por el nombre
+                auxCard.auxiliaryType = AuxiliaryCard.AuxiliaryType.LevelUp;
+                auxCard.cardName = "Carta Auxiliar";
+                auxCard.description = "Carta auxiliar con efecto especial";
+            }
+        }
+
         switch (areaType)
         {
             case "Extra":
@@ -485,6 +520,54 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
+    // Añadir estos métodos a tu clase PlayerManager existente
+
+    // Método para resetear cartas auxiliares al inicio de una nueva partida
+    [Server]
+    public void ResetAuxiliaryCards()
+    {
+        // Buscar todas las cartas auxiliares del jugador
+        AuxiliaryCard[] auxCards = FindObjectsOfType<AuxiliaryCard>();
+
+        foreach (AuxiliaryCard auxCard in auxCards)
+        {
+            NetworkIdentity auxNetId = auxCard.GetComponent<NetworkIdentity>();
+            if (auxNetId.connectionToClient == connectionToClient)
+            {
+                auxCard.ResetCard();
+            }
+        }
+    }
+
+    // Método para resetear todas las cartas normales al inicio de una nueva partida
+    [Server]
+    public void ResetAllCards()
+    {
+        // Resetear cartas auxiliares
+        ResetAuxiliaryCards();
+
+        // Resetear cartas normales modificadas
+        CardData[] allCards = FindObjectsOfType<CardData>();
+        foreach (CardData card in allCards)
+        {
+            NetworkIdentity cardNetId = card.GetComponent<NetworkIdentity>();
+            if (cardNetId != null && cardNetId.connectionToClient == connectionToClient)
+            {
+                RpcResetCard(card.gameObject);
+            }
+        }
+    }
+
+    [ClientRpc]
+    private void RpcResetCard(GameObject cardObject)
+    {
+        CardData cardData = cardObject.GetComponent<CardData>();
+        if (cardData != null)
+        {
+            cardData.ResetCard();
+        }
+    }
+
+    // Modificación para asegurar que las cartas auxiliares tengan el componente correcto
 
 }
-
