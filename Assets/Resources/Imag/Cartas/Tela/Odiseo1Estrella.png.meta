@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 7bb4604a2f20bcc4784a367565fdac68
+guid: b5b881dd9979ebf42963746e34c945d3
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4757879072843228766
-    second: Aracne2Estrellas_0
+      213: -8113167382641388090
+    second: Odiseo1Estrella_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Aracne2Estrellas_0
+      name: Odiseo1Estrella_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 1080
-        height: 1629
+        height: 1626
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e56e515fec1670240800000000000000
-      internalID: 4757879072843228766
+      spriteID: 6c5df5a304d386f80800000000000000
+      internalID: -8113167382641388090
       vertices: []
       indices: 
       edges: []
@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Odiseo1Estrella_0: -8113167382641388090
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

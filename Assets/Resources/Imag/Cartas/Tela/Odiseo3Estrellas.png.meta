@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 437ac1714c0a6da4abf7e89799080704
+guid: 7136434b0cbd01a4fa87d43fc8f3cb11
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8194354236398837706
-    second: TelarAracne1Estrella_0
+      213: -3663161431994524286
+    second: Odiseo3Estrellas_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: TelarAracne1Estrella_0
+      name: Odiseo3Estrellas_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 1080
-        height: 1636
+        height: 1630
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: acf154033c138b170800000000000000
-      internalID: 8194354236398837706
+      spriteID: 28d1e0bf516d92dc0800000000000000
+      internalID: -3663161431994524286
       vertices: []
       indices: 
       edges: []
@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Odiseo3Estrellas_0: -3663161431994524286
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

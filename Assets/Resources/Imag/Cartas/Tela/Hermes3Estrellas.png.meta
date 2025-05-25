@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 664062d2072de914198b556206666b2b
+guid: c88ee17ee1c487341b20eef329110196
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1181509679529765442
-    second: Odiseo2Estrellas_0
+      213: -1452708948446557311
+    second: Hermes3Estrellas_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Odiseo2Estrellas_0
+      name: Hermes3Estrellas_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 1080
-        height: 1637
+        height: 1631
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: eb551f4d43f6a9fe0800000000000000
-      internalID: -1181509679529765442
+      spriteID: 18bcfcd78e0f6dbe0800000000000000
+      internalID: -1452708948446557311
       vertices: []
       indices: 
       edges: []
@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Hermes3Estrellas_0: -1452708948446557311
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c88ee17ee1c487341b20eef329110196
+guid: 5e686fc63eb9dd6439009660acc816e9
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1452708948446557311
-    second: Hermes3Estrellas_0
+      213: -4059995622982187587
+    second: Aracne3Estrellas_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Hermes3Estrellas_0
+      name: Aracne3Estrellas_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 1080
-        height: 1631
+        height: 1624
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 18bcfcd78e0f6dbe0800000000000000
-      internalID: -1452708948446557311
+      spriteID: db5818edd7ff7a7c0800000000000000
+      internalID: -4059995622982187587
       vertices: []
       indices: 
       edges: []
@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Aracne3Estrellas_0: -4059995622982187587
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 5afdc8d7fb97fb843bdc73803d5543e7
+guid: b172d92127eb9f44e8e46d843a63220e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8440429690238031431
-    second: Tiresias2Estrellas_0
+      213: 3822361723954360172
+    second: Hermes1Estrella_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Tiresias2Estrellas_0
+      name: Hermes1Estrella_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7465c4e751e622570800000000000000
-      internalID: 8440429690238031431
+      spriteID: c6f69577cb1cb0530800000000000000
+      internalID: 3822361723954360172
       vertices: []
       indices: 
       edges: []
@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Hermes1Estrella_0: 3822361723954360172
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
