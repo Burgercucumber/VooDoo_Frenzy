@@ -385,6 +385,12 @@ public class PlayerManager : NetworkBehaviour
                 break;
 
         }
+        // En PlayerManager.cs, dentro de RpcSetCardParent
+        CardClickHandler clickHandler = card.GetComponent<CardClickHandler>();
+        if (clickHandler == null)
+        {
+            card.AddComponent<CardClickHandler>();
+        }
     }
 
     [ClientRpc]
@@ -520,54 +526,107 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    // Añadir estos métodos a tu clase PlayerManager existente
+    // Metodos para el auxiliari 
 
-    // Método para resetear cartas auxiliares al inicio de una nueva partida
+    [Header("Sistema de Cartas Disponibles")]
+    public List<GameObject> allAvailableCards = new List<GameObject>(); // Lista completa de todas las cartas posibles
+
     [Server]
-    public void ResetAuxiliaryCards()
+    private void InitializeAvailableCards()
     {
-        // Buscar todas las cartas auxiliares del jugador
-        AuxiliaryCard[] auxCards = FindObjectsOfType<AuxiliaryCard>();
+        // Inicializar con todas las variantes de cartas
+        // Aquí deberías agregar todas las cartas posibles del juego
+        // Por ejemplo, diferentes niveles de la misma carta:
 
-        foreach (AuxiliaryCard auxCard in auxCards)
+        // Cartas Botón Rojas (niveles 1, 2, 3)
+        allAvailableCards.Add(BotonR1); // Nivel 1
+                                        // Agregar BotonR1_Level2, BotonR1_Level3 si existen
+
+        // Cartas Botón Verdes
+        allAvailableCards.Add(BotonV1);
+        // etc...
+
+        // Cartas Botón Moradas
+        allAvailableCards.Add(BotonM1);
+        // etc...
+
+        // Repite para todos los elementos y niveles
+    }
+
+    public List<GameObject> GetAvailableCards()
+    {
+        if (allAvailableCards.Count == 0)
         {
-            NetworkIdentity auxNetId = auxCard.GetComponent<NetworkIdentity>();
-            if (auxNetId.connectionToClient == connectionToClient)
+            InitializeAvailableCards();
+        }
+        return allAvailableCards;
+    }
+
+    // Método para encontrar cartas específicas por criterios
+    public GameObject FindCardByCriteria(CardData.ElementType element, CardData.ColorType color, int starLevel)
+    {
+        foreach (GameObject cardPrefab in GetAvailableCards())
+        {
+            CardData cardData = cardPrefab.GetComponent<CardData>();
+            if (cardData != null &&
+                cardData.element == element &&
+                cardData.color == color &&
+                cardData.starLevel == starLevel)
             {
-                auxCard.ResetCard();
+                return cardPrefab;
             }
         }
+        return null;
     }
 
-    // Método para resetear todas las cartas normales al inicio de una nueva partida
-    [Server]
-    public void ResetAllCards()
+    // Método para obtener todas las variantes de una carta (diferentes niveles)
+    public List<GameObject> GetCardVariants(CardData.ElementType element, CardData.ColorType color)
     {
-        // Resetear cartas auxiliares
-        ResetAuxiliaryCards();
+        List<GameObject> variants = new List<GameObject>();
 
-        // Resetear cartas normales modificadas
-        CardData[] allCards = FindObjectsOfType<CardData>();
-        foreach (CardData card in allCards)
+        foreach (GameObject cardPrefab in GetAvailableCards())
         {
-            NetworkIdentity cardNetId = card.GetComponent<NetworkIdentity>();
-            if (cardNetId != null && cardNetId.connectionToClient == connectionToClient)
+            CardData cardData = cardPrefab.GetComponent<CardData>();
+            if (cardData != null &&
+                cardData.element == element &&
+                cardData.color == color)
             {
-                RpcResetCard(card.gameObject);
+                variants.Add(cardPrefab);
             }
         }
-    }
 
-    [ClientRpc]
-    private void RpcResetCard(GameObject cardObject)
-    {
-        CardData cardData = cardObject.GetComponent<CardData>();
-        if (cardData != null)
+        // Ordenar por nivel de estrella
+        variants.Sort((a, b) =>
         {
-            cardData.ResetCard();
-        }
+            CardData cardA = a.GetComponent<CardData>();
+            CardData cardB = b.GetComponent<CardData>();
+            return cardA.starLevel.CompareTo(cardB.starLevel);
+        });
+
+        return variants;
     }
 
-    // Modificación para asegurar que las cartas auxiliares tengan el componente correcto
+    // Método para verificar si una carta puede ser mejorada de nivel
+    public bool CanCardBeLeveledUp(CardData originalCard)
+    {
+        List<GameObject> variants = GetCardVariants(originalCard.element, originalCard.color);
+
+        foreach (GameObject variant in variants)
+        {
+            CardData variantData = variant.GetComponent<CardData>();
+            if (variantData.starLevel > originalCard.starLevel && variantData.starLevel <= 3)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Método para verificar si una carta puede cambiar de elemento
+    public bool CanCardChangeElement(CardData originalCard, CardData.ElementType newElement)
+    {
+        return FindCardByCriteria(newElement, originalCard.color, originalCard.starLevel) != null;
+    }
 
 }

@@ -1,230 +1,321 @@
-using System.Collections;
-using UnityEngine;
+Ôªøusing UnityEngine;
 using Mirror;
 
 public class AuxiliaryCard : NetworkBehaviour
 {
     public enum AuxiliaryType
     {
-        LevelUp,      // Aumenta nivel de cartas
-        ElementChange, // Cambia elemento de carta
-        RemoveVictory  // Elimina victoria del oponente
+        LevelUp,
+        ElementChange,
+        RemoveVictory
     }
 
-    [Header("ConfiguraciÛn de Carta Auxiliar")]
+    [Header("Configuraci√≥n de Carta Auxiliar")]
     public AuxiliaryType auxiliaryType;
     public string cardName;
     [TextArea]
     public string description;
 
-    [SyncVar]
-    private bool hasBeenUsed = false;
-
-    private float lastClickTime = 0f;
-    private float doubleClickThreshold = 0.3f;
-
-    public bool HasBeenUsed => hasBeenUsed;
+    private static AuxiliaryCard selectedAuxiliary = null;
+    private bool isSelected = false;
 
     private void OnMouseDown()
     {
-        // Solo el dueÒo puede usar sus cartas auxiliares
-        if (!isOwned) return;
-        if (hasBeenUsed)
+        // Solo el due√±o puede usar sus cartas auxiliares
+        // Verificar si este cliente tiene autoridad sobre esta carta auxiliar
+        if (!isOwned)
         {
-            Debug.Log("Esta carta auxiliar ya ha sido utilizada.");
+            Debug.Log("No eres el due√±o de esta carta auxiliar");
             return;
         }
 
-        // Detectar doble click
-        if (Time.time - lastClickTime < doubleClickThreshold)
+        Debug.Log($"Carta auxiliar {auxiliaryType} clickeada");
+
+        // Si ya hay una auxiliar seleccionada, deseleccionarla
+        if (selectedAuxiliary != null && selectedAuxiliary != this)
         {
-            OnDoubleClick();
+            selectedAuxiliary.Deselect();
         }
-        lastClickTime = Time.time;
+
+        // Seleccionar esta carta auxiliar
+        SelectAuxiliary();
     }
 
-    private void OnDoubleClick()
+    private void SelectAuxiliary()
     {
-        Debug.Log($"Doble click en carta auxiliar: {auxiliaryType}");
-        CmdUseAuxiliaryCard();
+        selectedAuxiliary = this;
+        isSelected = true;
+
+        // Efecto visual de selecci√≥n - solo cambiar escala
+        transform.localScale = Vector3.one * 1.1f;
+
+        // Si quieres cambiar color y usas otro tipo de renderer, descomenta y adapta:
+        // Renderer renderer = GetComponent<Renderer>();
+        // if (renderer != null)
+        // {
+        //     renderer.material.color = Color.yellow;
+        // }
+
+        Debug.Log($"Carta auxiliar {auxiliaryType} seleccionada. Haz clic en una carta para aplicar el efecto.");
+    }
+
+    private void Deselect()
+    {
+        isSelected = false;
+
+        // Restaurar escala original
+        transform.localScale = Vector3.one;
+
+        // Si quieres restaurar color y usas otro tipo de renderer, descomenta y adapta:
+        // Renderer renderer = GetComponent<Renderer>();
+        // if (renderer != null)
+        // {
+        //     renderer.material.color = Color.white;
+        // }
+    }
+
+    // M√©todo est√°tico para verificar si hay una auxiliar seleccionada
+    public static bool HasSelectedAuxiliary()
+    {
+        return selectedAuxiliary != null;
+    }
+
+    // M√©todo est√°tico para que las cartas normales puedan llamarlo
+    public static void OnCardClicked(GameObject targetCard)
+    {
+        if (selectedAuxiliary == null)
+        {
+            Debug.Log("No hay carta auxiliar seleccionada");
+            return;
+        }
+
+        Debug.Log($"Aplicando efecto {selectedAuxiliary.auxiliaryType} a la carta {targetCard.name}");
+        selectedAuxiliary.CmdUseAuxiliaryCard(targetCard);
     }
 
     [Command]
-    public void CmdUseAuxiliaryCard()
+    public void CmdUseAuxiliaryCard(GameObject targetCard)
     {
-        if (hasBeenUsed) return;
+        // Obtener el PlayerManager del jugador que posee esta carta auxiliar
+        NetworkIdentity ownerIdentity = GetComponent<NetworkIdentity>();
+        PlayerManager playerManager = null;
+
+        // Buscar el PlayerManager asociado con la conexi√≥n del cliente
+        PlayerManager[] allPlayers = FindObjectsOfType<PlayerManager>();
+        foreach (PlayerManager pm in allPlayers)
+        {
+            if (pm.connectionToClient == ownerIdentity.connectionToClient)
+            {
+                playerManager = pm;
+                break;
+            }
+        }
+
+        if (playerManager == null)
+        {
+            Debug.LogError("No se pudo encontrar el PlayerManager para esta carta auxiliar");
+            return;
+        }
+
+        bool effectApplied = false;
 
         switch (auxiliaryType)
         {
             case AuxiliaryType.LevelUp:
-                InitiateLevelUpEffect();
+                effectApplied = TryLevelUpCard(playerManager, targetCard);
                 break;
             case AuxiliaryType.ElementChange:
-                InitiateElementChangeEffect();
+                effectApplied = TryElementChangeCard(playerManager, targetCard);
                 break;
             case AuxiliaryType.RemoveVictory:
-                InitiateRemoveVictoryEffect();
+                effectApplied = TryRemoveVictory();
                 break;
         }
 
-        hasBeenUsed = true;
-        RpcShowUsedEffect();
+        // Limpiar selecci√≥n
+        RpcClearSelection();
+
+        if (effectApplied)
+        {
+            Debug.Log($"Efecto {auxiliaryType} aplicado exitosamente");
+            // Destruir la carta auxiliar despu√©s de usarla
+            NetworkServer.Destroy(gameObject);
+        }
+        else
+        {
+            Debug.Log($"No se pudo aplicar el efecto {auxiliaryType}. Operaci√≥n cancelada.");
+        }
     }
 
     [Server]
-    private void InitiateLevelUpEffect()
+    private bool TryLevelUpCard(PlayerManager playerManager, GameObject targetCard)
     {
-        Debug.Log("Iniciando efecto de subir nivel");
-        TargetShowCardSelection(connectionToClient, "level_up");
+        CardData cardData = targetCard.GetComponent<CardData>();
+        if (cardData == null || cardData.starLevel >= 3)
+        {
+            Debug.Log("La carta no se puede mejorar m√°s (nivel m√°ximo alcanzado)");
+            return false;
+        }
+
+        // Buscar carta de mayor nivel
+        GameObject higherLevelCard = FindCardWithHigherLevel(playerManager, cardData);
+        if (higherLevelCard != null)
+        {
+            ReplaceCard(targetCard, higherLevelCard);
+            return true;
+        }
+
+        Debug.Log("No se encontr√≥ una carta de mayor nivel disponible");
+        return false;
     }
 
     [Server]
-    private void InitiateElementChangeEffect()
+    private bool TryElementChangeCard(PlayerManager playerManager, GameObject targetCard)
     {
-        Debug.Log("Iniciando efecto de cambio de elemento");
-        TargetShowCardSelection(connectionToClient, "element_change");
+        CardData originalCardData = targetCard.GetComponent<CardData>();
+        if (originalCardData == null) return false;
+
+        CardData.ElementType[] elements = {
+            CardData.ElementType.Boton,
+            CardData.ElementType.Alfiler,
+            CardData.ElementType.Tela,
+            CardData.ElementType.Algodon
+        };
+
+        // Buscar un elemento diferente disponible
+        foreach (CardData.ElementType element in elements)
+        {
+            if (element != originalCardData.element)
+            {
+                GameObject cardWithElement = FindCardWithElement(playerManager, originalCardData, element);
+                if (cardWithElement != null)
+                {
+                    ReplaceCard(targetCard, cardWithElement);
+                    return true;
+                }
+            }
+        }
+
+        Debug.Log("No se encontr√≥ una carta con elemento diferente disponible");
+        return false;
     }
 
     [Server]
-    private void InitiateRemoveVictoryEffect()
+    private bool TryRemoveVictory()
     {
-        Debug.Log("Iniciando efecto de remover victoria");
-        // Este efecto es inmediato, no necesita selecciÛn de carta
         PlayerManager opponent = GetOpponentPlayer();
         if (opponent != null)
         {
-            PlayerVictoryTracker.RemoveRandomVictory(opponent);
-            RpcShowRemoveVictoryEffect();
+            // Asumiendo que tienes un sistema de victorias implementado
+            // return PlayerVictoryTracker.RemoveRandomVictory(opponent);
+            Debug.Log("Efecto RemoveVictory aplicado (placeholder)");
+            return true; // Placeholder - implementar seg√∫n tu sistema de victorias
         }
+        return false;
     }
 
-    [TargetRpc]
-    private void TargetShowCardSelection(NetworkConnection target, string effectType)
+    [Server]
+    private GameObject FindCardWithHigherLevel(PlayerManager playerManager, CardData originalCard)
     {
-        AuxiliaryEffectUI.Instance.ShowCardSelection(effectType, this);
-    }
-
-    [ClientRpc]
-    private void RpcShowUsedEffect()
-    {
-        // Cambiar apariencia de la carta para mostrar que ya fue usada
-        GetComponent<SpriteRenderer>().color = Color.gray;
-
-        // Opcional: AÒadir efecto visual
-        StartCoroutine(ShowUsedAnimation());
-    }
-
-    [ClientRpc]
-    private void RpcShowRemoveVictoryEffect()
-    {
-        // Mostrar efecto visual cuando se remueve una victoria
-        if (AuxiliaryEffectUI.Instance != null)
+        foreach (GameObject cardPrefab in playerManager.GetAvailableCards())
         {
-            AuxiliaryEffectUI.Instance.ShowRemoveVictoryEffect();
-        }
-    }
-
-    private IEnumerator ShowUsedAnimation()
-    {
-        Vector3 originalScale = transform.localScale;
-
-        // AnimaciÛn de "pulso" para indicar que la carta fue usada
-        for (int i = 0; i < 3; i++)
-        {
-            transform.localScale = originalScale * 1.1f;
-            yield return new WaitForSeconds(0.1f);
-            transform.localScale = originalScale;
-            yield return new WaitForSeconds(0.1f);
-        }
-    }
-
-    [Command]
-    public void CmdApplyLevelUpEffect(GameObject targetCard)
-    {
-        if (hasBeenUsed) return;
-
-        CardData cardData = targetCard.GetComponent<CardData>();
-        if (cardData != null && cardData.CanLevelUp())
-        {
-            // Llamar al mÈtodo LevelUp del CardData
-            RpcApplyLevelUp(targetCard);
-            Debug.Log($"Carta {cardData.cardName} aplicando efecto de subir nivel");
-        }
-        else
-        {
-            Debug.Log("La carta no puede subir de nivel (ya est· al m·ximo o ya fue modificada)");
-        }
-    }
-
-    [Command]
-    public void CmdApplyElementChangeEffect(GameObject targetCard, int newElementIndex)
-    {
-        if (hasBeenUsed) return;
-
-        CardData cardData = targetCard.GetComponent<CardData>();
-        if (cardData != null && cardData.CanChangeElement())
-        {
-            // Llamar al mÈtodo ChangeElement del CardData
-            RpcApplyElementChange(targetCard, newElementIndex);
-            Debug.Log($"Carta {cardData.cardName} aplicando cambio de elemento");
-        }
-        else
-        {
-            Debug.Log("La carta no puede cambiar de elemento (ya fue modificada)");
-        }
-    }
-
-    [ClientRpc]
-    private void RpcApplyLevelUp(GameObject targetCard)
-    {
-        CardData cardData = targetCard.GetComponent<CardData>();
-        if (cardData != null)
-        {
-            cardData.LevelUp();
-        }
-    }
-
-    [ClientRpc]
-    private void RpcApplyElementChange(GameObject targetCard, int newElementIndex)
-    {
-        CardData cardData = targetCard.GetComponent<CardData>();
-        if (cardData != null)
-        {
-            cardData.ChangeElement((CardData.ElementType)newElementIndex);
-        }
-    }
-
-    [ClientRpc]
-    private void RpcUpdateCardVisual(GameObject card)
-    {
-        // Ya no necesitamos este mÈtodo, las cartas se actualizan autom·ticamente
-        // a travÈs de sus propios mÈtodos LevelUp() y ChangeElement()
-    }
-
-    private PlayerManager GetOpponentPlayer()
-    {
-        PlayerManager[] players = FindObjectsOfType<PlayerManager>();
-        foreach (PlayerManager player in players)
-        {
-            if (player != GetComponent<NetworkIdentity>().connectionToClient.identity.GetComponent<PlayerManager>())
+            CardData prefabData = cardPrefab.GetComponent<CardData>();
+            if (prefabData != null &&
+                prefabData.element == originalCard.element &&
+                prefabData.color == originalCard.color &&
+                prefabData.starLevel > originalCard.starLevel &&
+                prefabData.starLevel <= 3)
             {
-                return player;
+                return cardPrefab;
             }
         }
         return null;
     }
 
-    // MÈtodo para resetear el estado de la carta (˙til para nuevas partidas)
     [Server]
-    public void ResetCard()
+    private GameObject FindCardWithElement(PlayerManager playerManager, CardData originalCard, CardData.ElementType newElement)
     {
-        hasBeenUsed = false;
-        RpcResetVisuals();
+        foreach (GameObject cardPrefab in playerManager.GetAvailableCards())
+        {
+            CardData prefabData = cardPrefab.GetComponent<CardData>();
+            if (prefabData != null &&
+                prefabData.element == newElement &&
+                prefabData.color == originalCard.color &&
+                prefabData.starLevel == originalCard.starLevel)
+            {
+                return cardPrefab;
+            }
+        }
+        return null;
+    }
+
+    [Server]
+    private void ReplaceCard(GameObject oldCard, GameObject newCardPrefab)
+    {
+        Transform originalParent = oldCard.transform.parent;
+        Vector3 originalLocalPosition = oldCard.transform.localPosition;
+
+        // Obtener la conexi√≥n del jugador propietario de la carta original
+        NetworkIdentity oldCardNetId = oldCard.GetComponent<NetworkIdentity>();
+        NetworkConnectionToClient ownerConnection = oldCardNetId.connectionToClient;
+
+        // Crear la nueva carta
+        GameObject newCard = Instantiate(newCardPrefab, oldCard.transform.position, oldCard.transform.rotation);
+        NetworkServer.Spawn(newCard, ownerConnection);
+
+        // Configurar posici√≥n
+        RpcSetCardPosition(newCard, originalParent, originalLocalPosition);
+
+        // Destruir la carta original
+        NetworkServer.Destroy(oldCard);
+
+        Debug.Log("Carta reemplazada exitosamente");
     }
 
     [ClientRpc]
-    private void RpcResetVisuals()
+    private void RpcSetCardPosition(GameObject newCard, Transform parent, Vector3 localPosition)
     {
-        GetComponent<SpriteRenderer>().color = Color.white;
+        if (newCard != null && parent != null)
+        {
+            newCard.transform.SetParent(parent, false);
+            newCard.transform.localPosition = localPosition;
+        }
+    }
+
+    [ClientRpc]
+    private void RpcClearSelection()
+    {
+        if (selectedAuxiliary == this)
+        {
+            selectedAuxiliary = null;
+        }
+        Deselect();
+    }
+
+    private PlayerManager GetOpponentPlayer()
+    {
+        PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+        NetworkIdentity ownerIdentity = GetComponent<NetworkIdentity>();
+
+        // Buscar el PlayerManager del jugador actual
+        PlayerManager ownerPlayer = null;
+        foreach (PlayerManager player in players)
+        {
+            if (player.connectionToClient == ownerIdentity.connectionToClient)
+            {
+                ownerPlayer = player;
+                break;
+            }
+        }
+
+        // Retornar el otro jugador
+        foreach (PlayerManager player in players)
+        {
+            if (player != ownerPlayer)
+            {
+                return player;
+            }
+        }
+        return null;
     }
 }

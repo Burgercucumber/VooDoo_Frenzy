@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: -2776038161609380879}
   - component: {fileID: 4164540814680054072}
   - component: {fileID: 2076431360869594451}
+  - component: {fileID: -3006271224491665660}
   m_Layer: 6
   m_Name: BotonV 4
   m_TagString: Card
@@ -427,6 +428,7 @@ MonoBehaviour:
   element: 0
   color: 1
   description: 'Carta de boton verde: 2 estrellas'
+<<<<<<< Updated upstream
   cardImageComponent: {fileID: 0}
   originalImage: {fileID: 0}
   levelUpImage: {fileID: 0}
@@ -536,3 +538,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2643380117540622511, guid: 918fc7ae4a67e74409979201aedddc23, type: 3}
   m_PrefabInstance: {fileID: 7876801025641897062}
   m_PrefabAsset: {fileID: 0}
+=======
+--- !u!114 &-3006271224491665660
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3330925503045198327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f06f0abb04e7ed04f8cf3e0bf9bcbd2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+>>>>>>> Stashed changes

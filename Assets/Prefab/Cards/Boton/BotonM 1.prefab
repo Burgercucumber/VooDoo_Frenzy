@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: -2776038161609380879}
   - component: {fileID: 4164540814680054072}
   - component: {fileID: 2076431360869594451}
+  - component: {fileID: -573180212636691156}
   m_Layer: 6
   m_Name: BotonM 1
   m_TagString: Card
@@ -426,3 +427,15 @@ MonoBehaviour:
   element: 0
   color: 2
   description: 'Carta de boton morado: 1 estrella'
+--- !u!114 &-573180212636691156
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3330925503045198327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f06f0abb04e7ed04f8cf3e0bf9bcbd2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
