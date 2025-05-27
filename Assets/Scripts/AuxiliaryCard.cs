@@ -302,6 +302,9 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
         // AHORA destruir la carta original
         NetworkServer.Destroy(oldCard);
 
+        // NUEVO: Limpiar cualquier zoom huérfano después de la destrucción
+        RpcClearOrphanedZooms();
+
         // Usar el sistema existente de PlayerManager para establecer el padre correctamente
         PlayerManager playerManager = GetPlayerManager(ownerConnection);
         if (playerManager != null)
@@ -344,6 +347,14 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
             selectedAuxiliary = null;
         }
         Deselect();
+    }
+
+    // NUEVO: RPC para limpiar zooms huérfanos
+    [ClientRpc]
+    private void RpcClearOrphanedZooms()
+    {
+        // Limpiar cualquier zoom huérfano
+        CardZoom.ClearAllOrphanedZooms();
     }
 
     // Método helper para obtener PlayerManager

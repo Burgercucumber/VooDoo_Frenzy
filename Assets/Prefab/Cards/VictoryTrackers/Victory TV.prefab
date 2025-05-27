@@ -11,21 +11,17 @@ GameObject:
   - component: {fileID: 6629282733027480507}
   - component: {fileID: 5907165286780168086}
   - component: {fileID: 4673418421689545952}
-  - component: {fileID: 3266931458188839601}
   - component: {fileID: 3760038598421184574}
   - component: {fileID: 3609609663374275085}
   - component: {fileID: 4368354688134821474}
   - component: {fileID: 8129095267208252423}
   - component: {fileID: 4273279019205749502}
-  - component: {fileID: -1552298984663562051}
-  - component: {fileID: -8228684071819495767}
-  - component: {fileID: -2776038161609380879}
-  - component: {fileID: 4164540814680054072}
-  - component: {fileID: 2076431360869594451}
-  - component: {fileID: 9093050513749464407}
-  m_Layer: 6
-  m_Name: BotonR 4
-  m_TagString: Card
+  - component: {fileID: 3329308164964507233}
+  - component: {fileID: 3625159268873858892}
+  - component: {fileID: -7491915371428041189}
+  m_Layer: 9
+  m_Name: Victory TV
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -47,7 +43,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 420, y: -347.53}
-  m_SizeDelta: {x: 120, y: 177}
+  m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5907165286780168086
 CanvasRenderer:
@@ -77,7 +73,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -5051488897884480585, guid: 30c41c9f4e1692d46bddbdc2af773197, type: 3}
+  m_Sprite: {fileID: -5509753353421974763, guid: 5f23c36bbcf15f341baeaad8004bf0d0, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -87,23 +83,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &3266931458188839601
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3330925503045198327}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e04fa58e8673997499c570c5e10c6442, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncDirection: 0
-  syncMode: 0
-  syncInterval: 0
-  Canvas: {fileID: 0}
-  OwnerPlayerManager: {fileID: 0}
 --- !u!114 &3760038598421184574
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -117,55 +96,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Delegates:
-  - eventID: 13
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 3266931458188839601}
-          m_TargetAssemblyTypeName: DragDrop, Assembly-CSharp
-          m_MethodName: StartDrag
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-        - m_Target: {fileID: -8228684071819495767}
-          m_TargetAssemblyTypeName: CardZoom, Assembly-CSharp
-          m_MethodName: OnHoverExit
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  - eventID: 14
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 3266931458188839601}
-          m_TargetAssemblyTypeName: DragDrop, Assembly-CSharp
-          m_MethodName: EndDrag
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
   - eventID: 0
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: -8228684071819495767}
+        - m_Target: {fileID: 3329308164964507233}
           m_TargetAssemblyTypeName: CardZoom, Assembly-CSharp
           m_MethodName: OnHoverEnter
           m_Mode: 1
@@ -181,7 +116,7 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: -8228684071819495767}
+        - m_Target: {fileID: 3329308164964507233}
           m_TargetAssemblyTypeName: CardZoom, Assembly-CSharp
           m_MethodName: OnHoverExit
           m_Mode: 1
@@ -197,19 +132,7 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: -2776038161609380879}
-          m_TargetAssemblyTypeName: TargetClick, Assembly-CSharp
-          m_MethodName: OnTargetClick
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-        - m_Target: {fileID: 4164540814680054072}
+        - m_Target: {fileID: -7491915371428041189}
           m_TargetAssemblyTypeName: incrementClick, Assembly-CSharp
           m_MethodName: IncrementClicks
           m_Mode: 1
@@ -265,7 +188,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 120, y: 177}
+  m_Size: {x: 100, y: 100}
   m_EdgeRadius: 0
 --- !u!50 &4368354688134821474
 Rigidbody2D:
@@ -307,7 +230,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneId: 0
-  _assetId: 2535951313
+  _assetId: 1645847503
   serverOnly: 0
   visibility: 0
   hasSpawned: 0
@@ -324,7 +247,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syncDirection: 1
-  syncMode: 0
+  syncMode: 1
   syncInterval: 0
   target: {fileID: 6629282733027480507}
   syncPosition: 0
@@ -345,21 +268,7 @@ MonoBehaviour:
   rotationSensitivity: 0.01
   positionPrecision: 0.01
   scalePrecision: 0.01
---- !u!114 &-1552298984663562051
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3330925503045198327}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ade3deb7090912849a47be63d50cfb9b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  CardFront: {fileID: -5051488897884480585, guid: 30c41c9f4e1692d46bddbdc2af773197, type: 3}
-  CardBack: {fileID: -6600512586180044344, guid: 23b328d6960bd9542822b6ccdfa9b369, type: 3}
---- !u!114 &-8228684071819495767
+--- !u!114 &3329308164964507233
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -376,7 +285,7 @@ MonoBehaviour:
   syncInterval: 0
   Canvas: {fileID: 0}
   ZoomCard: {fileID: 9033518934371112257, guid: ebf670afa1822d4418a400190f48eef6, type: 3}
---- !u!114 &-2776038161609380879
+--- !u!114 &3625159268873858892
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -392,7 +301,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   PlayerManager: {fileID: 0}
---- !u!114 &4164540814680054072
+--- !u!114 &-7491915371428041189
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -409,32 +318,3 @@ MonoBehaviour:
   syncInterval: 0
   PlayerManager: {fileID: 0}
   NumberOfClicks: 0
---- !u!114 &2076431360869594451
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3330925503045198327}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d23725b099a2b249a1c1d3d56e0683f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cardName: Boton carta
-  starLevel: 3
-  element: 0
-  color: 0
-  description: 'Carta de boton rojo: 3 estrellas'
---- !u!114 &9093050513749464407
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3330925503045198327}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f06f0abb04e7ed04f8cf3e0bf9bcbd2b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

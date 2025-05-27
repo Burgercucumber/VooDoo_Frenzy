@@ -22,9 +22,9 @@ GameObject:
   - component: {fileID: -2776038161609380879}
   - component: {fileID: 4164540814680054072}
   - component: {fileID: 2076431360869594451}
-  - component: {fileID: 9093050513749464407}
+  - component: {fileID: -573180212636691156}
   m_Layer: 6
-  m_Name: BotonR 4
+  m_Name: TelaM 3
   m_TagString: Card
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -77,7 +77,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -5051488897884480585, guid: 30c41c9f4e1692d46bddbdc2af773197, type: 3}
+  m_Sprite: {fileID: -3663161431994524286, guid: 7136434b0cbd01a4fa87d43fc8f3cb11, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -307,7 +307,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneId: 0
-  _assetId: 2535951313
+  _assetId: 127262573
   serverOnly: 0
   visibility: 0
   hasSpawned: 0
@@ -357,7 +357,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ade3deb7090912849a47be63d50cfb9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CardFront: {fileID: -5051488897884480585, guid: 30c41c9f4e1692d46bddbdc2af773197, type: 3}
+  CardFront: {fileID: -3663161431994524286, guid: 7136434b0cbd01a4fa87d43fc8f3cb11, type: 3}
   CardBack: {fileID: -6600512586180044344, guid: 23b328d6960bd9542822b6ccdfa9b369, type: 3}
 --- !u!114 &-8228684071819495767
 MonoBehaviour:
@@ -421,12 +421,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d23725b099a2b249a1c1d3d56e0683f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardName: Boton carta
+  cardName: Tela carta
   starLevel: 3
-  element: 0
-  color: 0
-  description: 'Carta de boton rojo: 3 estrellas'
---- !u!114 &9093050513749464407
+  element: 2
+  color: 2
+  description: 'Carta de tela morado: 3 estrellas'
+--- !u!114 &-573180212636691156
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

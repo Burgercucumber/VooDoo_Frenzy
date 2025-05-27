@@ -21,8 +21,24 @@ public class PlayerManager : NetworkBehaviour
     public GameObject BotonV3;
     public GameObject BotonV4;
 
+    public GameObject TelaM1;
+    public GameObject TelaM2;
+    public GameObject TelaM3;
+    public GameObject TelaM4;
+
+    public GameObject TelaR1;
+    public GameObject TelaR2;
+    public GameObject TelaR3;
+    public GameObject TelaR4;
+
+    public GameObject TelaV1;
+    public GameObject TelaV2;
+    public GameObject TelaV3;
+    public GameObject TelaV4;
+
 
     public GameObject Auxiliar;
+    public GameObject Auxiliar1;
 
     // Estas son las variables para referenciar las áreas del juego
     [SerializeField] private GameObject playerArea;
@@ -109,7 +125,24 @@ public class PlayerManager : NetworkBehaviour
         cards.Add(BotonV3);
         cards.Add(BotonV4);
 
-        auxiliar.Add(Auxiliar);//
+        cards.Add(TelaM1);
+        cards.Add(TelaM2);
+        cards.Add(TelaM3);
+        cards.Add(TelaM4);
+
+        cards.Add(TelaR1);
+        cards.Add(TelaR2);
+        cards.Add(TelaR3);
+        cards.Add(TelaR4);
+
+        cards.Add(TelaV1);
+        cards.Add(TelaV2);
+        cards.Add(TelaV3);
+        cards.Add(TelaV4);
+
+        //Auxiliares
+        auxiliar.Add(Auxiliar);
+        auxiliar.Add(Auxiliar1);//
 
         Debug.Log("Cartas disponibles en el servidor: " + cards.Count);
     }

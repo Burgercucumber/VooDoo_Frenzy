@@ -15,13 +15,28 @@ MonoImporter:
   - BotonV1: {fileID: 3330925503045198327, guid: 0b19eb7be0069954b8f84283a2fc7edd, type: 3}
   - BotonV2: {fileID: 3330925503045198327, guid: cc5601d0ed009ae4fbf1008b02ce5c96, type: 3}
   - BotonV3: {fileID: 3330925503045198327, guid: 5d053a1c0e26d7247b3ae977f90e4597, type: 3}
-  - BotonV4: {fileID: 3330925503045198327, guid: 607c3efdc81179941805ac9b22bc90cf, type: 3}
+  - BotonV4: {fileID: 3330925503045198327, guid: 8c0d5fada75be8e459a2f3c80fbd01a8, type: 3}
+  - TelaM1: {instanceID: 0}
+  - TelaM2: {instanceID: 0}
+  - TelaM3: {instanceID: 0}
+  - TelaM4: {instanceID: 0}
+  - TelaR1: {instanceID: 0}
+  - TelaR2: {instanceID: 0}
+  - TelaR3: {instanceID: 0}
+  - TelaR4: {instanceID: 0}
+  - TelaV1: {instanceID: 0}
+  - TelaV2: {instanceID: 0}
+  - TelaV3: {instanceID: 0}
+  - TelaV4: {instanceID: 0}
   - Auxiliar: {instanceID: 0}
+  - Auxiliar1: {instanceID: 0}
   - playerArea: {instanceID: 0}
   - enemyArea: {instanceID: 0}
   - dropZone: {instanceID: 0}
   - playerExtraArea: {instanceID: 0}
   - enemyExtraArea: {instanceID: 0}
+  - playerVictoryArea: {instanceID: 0}
+  - enemyVictoryArea: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
