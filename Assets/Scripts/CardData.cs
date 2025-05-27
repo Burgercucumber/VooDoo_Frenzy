@@ -1,8 +1,8 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CardData : MonoBehaviour
 {
-
     public CardData card;
     public enum ElementType
     {
@@ -21,15 +21,11 @@ public class CardData : MonoBehaviour
 
     [Header("Datos de la Carta")]
     public string cardName;
-
     [Range(1, 3)]
     public int starLevel = 1;
-
     public ElementType element;
-
     public ColorType color;
-
     [TextArea]
     public string description;
-}
 
+}

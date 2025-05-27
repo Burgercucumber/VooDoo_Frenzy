@@ -5,8 +5,22 @@ using Mirror;
 
 public class PlayerManager : NetworkBehaviour
 {
-    public GameObject Card;
-    public GameObject Card1;
+
+    public GameObject BotonM1;
+    public GameObject BotonM2;
+    public GameObject BotonM3;
+    public GameObject BotonM4;
+
+    public GameObject BotonR1;
+    public GameObject BotonR2;
+    public GameObject BotonR3;
+    public GameObject BotonR4;
+
+    public GameObject BotonV1;
+    public GameObject BotonV2;
+    public GameObject BotonV3;
+    public GameObject BotonV4;
+
 
     public GameObject Auxiliar;
 
@@ -80,8 +94,20 @@ public class PlayerManager : NetworkBehaviour
     {
         base.OnStartServer();
 
-        cards.Add(Card);
-        cards.Add(Card1);
+        cards.Add(BotonM1);
+        cards.Add(BotonM2);
+        cards.Add(BotonM3);
+        cards.Add(BotonM4);
+
+        cards.Add(BotonR1);
+        cards.Add(BotonR2);
+        cards.Add(BotonR3);
+        cards.Add(BotonR4);
+
+        cards.Add(BotonV1);
+        cards.Add(BotonV2);
+        cards.Add(BotonV3);
+        cards.Add(BotonV4);
 
         auxiliar.Add(Auxiliar);//
 
@@ -101,12 +127,14 @@ public class PlayerManager : NetworkBehaviour
             RpcSetCardParent(card, "Player");
         }
 
-        for (int i = 0; i < 3; i++)
-        {
-            GameObject aux = Instantiate(auxiliar[Random.Range(0, auxiliar.Count)], new Vector3(0, 0), Quaternion.identity);
-            NetworkServer.Spawn(aux, connectionToClient);
+        List<GameObject> shuffledAux = new List<GameObject>(auxiliar);
+        ShuffleList(shuffledAux);
 
-            // Enviar al área extra del jugador
+        int auxToDeal = Mathf.Min(3, shuffledAux.Count);
+        for (int i = 0; i < auxToDeal; i++)
+        {
+            GameObject aux = Instantiate(shuffledAux[i], Vector3.zero, Quaternion.identity);
+            NetworkServer.Spawn(aux, connectionToClient);
             RpcSetAuxParent(aux, "Extra");
         }
 
@@ -357,6 +385,12 @@ public class PlayerManager : NetworkBehaviour
                 break;
 
         }
+        // En PlayerManager.cs, dentro de RpcSetCardParent
+        CardClickHandler clickHandler = card.GetComponent<CardClickHandler>();
+        if (clickHandler == null)
+        {
+            card.AddComponent<CardClickHandler>();
+        }
     }
 
     [ClientRpc]
@@ -365,6 +399,41 @@ public class PlayerManager : NetworkBehaviour
         if (aux == null) return;
 
         Debug.Log($"[Client] Estableciendo padre para auxiliar: {areaType}");
+
+        // Asegurar que tenga el componente AuxiliaryCard si no lo tiene
+        AuxiliaryCard auxCard = aux.GetComponent<AuxiliaryCard>();
+        if (auxCard == null)
+        {
+            // Si el auxiliar no tiene AuxiliaryCard, añadirlo
+            auxCard = aux.AddComponent<AuxiliaryCard>();
+
+            // Configurar el tipo basado en el nombre del objeto o algún identificador
+            if (aux.name.Contains("LevelUp") || aux.name.Contains("Nivel"))
+            {
+                auxCard.auxiliaryType = AuxiliaryCard.AuxiliaryType.LevelUp;
+                auxCard.cardName = "Subir Nivel";
+                auxCard.description = "Aumenta el nivel de una carta de 2 estrellas o menos";
+            }
+            else if (aux.name.Contains("Element") || aux.name.Contains("Elemento"))
+            {
+                auxCard.auxiliaryType = AuxiliaryCard.AuxiliaryType.ElementChange;
+                auxCard.cardName = "Cambiar Elemento";
+                auxCard.description = "Cambia el elemento de una carta";
+            }
+            else if (aux.name.Contains("Remove") || aux.name.Contains("Remover"))
+            {
+                auxCard.auxiliaryType = AuxiliaryCard.AuxiliaryType.RemoveVictory;
+                auxCard.cardName = "Remover Victoria";
+                auxCard.description = "Elimina una victoria del oponente";
+            }
+            else
+            {
+                // Tipo por defecto si no se puede determinar por el nombre
+                auxCard.auxiliaryType = AuxiliaryCard.AuxiliaryType.LevelUp;
+                auxCard.cardName = "Carta Auxiliar";
+                auxCard.description = "Carta auxiliar con efecto especial";
+            }
+        }
 
         switch (areaType)
         {
@@ -446,7 +515,118 @@ public class PlayerManager : NetworkBehaviour
     }
 
     //
+    private void ShuffleList<T>(List<T> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            int rand = Random.Range(i, list.Count);
+            T temp = list[i];
+            list[i] = list[rand];
+            list[rand] = temp;
+        }
+    }
 
+    // Metodos para el auxiliari 
+
+    [Header("Sistema de Cartas Disponibles")]
+    public List<GameObject> allAvailableCards = new List<GameObject>(); // Lista completa de todas las cartas posibles
+
+    [Server]
+    private void InitializeAvailableCards()
+    {
+        // Inicializar con todas las variantes de cartas
+        // Aquí deberías agregar todas las cartas posibles del juego
+        // Por ejemplo, diferentes niveles de la misma carta:
+
+        // Cartas Botón Rojas (niveles 1, 2, 3)
+        allAvailableCards.Add(BotonR1); // Nivel 1
+                                        // Agregar BotonR1_Level2, BotonR1_Level3 si existen
+
+        // Cartas Botón Verdes
+        allAvailableCards.Add(BotonV1);
+        // etc...
+
+        // Cartas Botón Moradas
+        allAvailableCards.Add(BotonM1);
+        // etc...
+
+        // Repite para todos los elementos y niveles
+    }
+
+    public List<GameObject> GetAvailableCards()
+    {
+        if (allAvailableCards.Count == 0)
+        {
+            InitializeAvailableCards();
+        }
+        return allAvailableCards;
+    }
+
+    // Método para encontrar cartas específicas por criterios
+    public GameObject FindCardByCriteria(CardData.ElementType element, CardData.ColorType color, int starLevel)
+    {
+        foreach (GameObject cardPrefab in GetAvailableCards())
+        {
+            CardData cardData = cardPrefab.GetComponent<CardData>();
+            if (cardData != null &&
+                cardData.element == element &&
+                cardData.color == color &&
+                cardData.starLevel == starLevel)
+            {
+                return cardPrefab;
+            }
+        }
+        return null;
+    }
+
+    // Método para obtener todas las variantes de una carta (diferentes niveles)
+    public List<GameObject> GetCardVariants(CardData.ElementType element, CardData.ColorType color)
+    {
+        List<GameObject> variants = new List<GameObject>();
+
+        foreach (GameObject cardPrefab in GetAvailableCards())
+        {
+            CardData cardData = cardPrefab.GetComponent<CardData>();
+            if (cardData != null &&
+                cardData.element == element &&
+                cardData.color == color)
+            {
+                variants.Add(cardPrefab);
+            }
+        }
+
+        // Ordenar por nivel de estrella
+        variants.Sort((a, b) =>
+        {
+            CardData cardA = a.GetComponent<CardData>();
+            CardData cardB = b.GetComponent<CardData>();
+            return cardA.starLevel.CompareTo(cardB.starLevel);
+        });
+
+        return variants;
+    }
+
+    // Método para verificar si una carta puede ser mejorada de nivel
+    public bool CanCardBeLeveledUp(CardData originalCard)
+    {
+        List<GameObject> variants = GetCardVariants(originalCard.element, originalCard.color);
+
+        foreach (GameObject variant in variants)
+        {
+            CardData variantData = variant.GetComponent<CardData>();
+            if (variantData.starLevel > originalCard.starLevel && variantData.starLevel <= 3)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Método para verificar si una carta puede cambiar de elemento
+    public bool CanCardChangeElement(CardData originalCard, CardData.ElementType newElement)
+    {
+        return FindCardByCriteria(newElement, originalCard.color, originalCard.starLevel) != null;
+    }
 
 }
-

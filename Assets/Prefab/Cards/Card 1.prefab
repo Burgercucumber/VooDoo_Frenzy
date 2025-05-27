@@ -426,3 +426,10 @@ MonoBehaviour:
   element: 1
   color: 2
   description: 'Carta de alfiler morado: 2 estrellas'
+  cardImageComponent: {fileID: 0}
+  originalImage: {fileID: 0}
+  levelUpImage: {fileID: 0}
+  botonVariantImage: {fileID: 0}
+  alfilerVariantImage: {fileID: 0}
+  telaVariantImage: {fileID: 0}
+  algodonVariantImage: {fileID: 0}
