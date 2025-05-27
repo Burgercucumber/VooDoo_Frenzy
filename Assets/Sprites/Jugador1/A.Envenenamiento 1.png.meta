@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      A.Envenenamiento 1_0: 1006557351313192036
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

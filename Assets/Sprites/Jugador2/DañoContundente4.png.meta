@@ -197,7 +197,10 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      "Da\xF1oContundente4_0": -5535640380779551929
+      "Da\xF1oContundente4_1": 5035871878134617669
+      "Da\xF1oContundente4_2": -9105854306393571862
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

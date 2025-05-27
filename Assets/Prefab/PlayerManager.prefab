@@ -111,10 +111,32 @@ MonoBehaviour:
   BotonV1: {fileID: 3330925503045198327, guid: 0b19eb7be0069954b8f84283a2fc7edd, type: 3}
   BotonV2: {fileID: 3330925503045198327, guid: cc5601d0ed009ae4fbf1008b02ce5c96, type: 3}
   BotonV3: {fileID: 3330925503045198327, guid: 5d053a1c0e26d7247b3ae977f90e4597, type: 3}
-  BotonV4: {fileID: 3330925503045198327, guid: 607c3efdc81179941805ac9b22bc90cf, type: 3}
+  BotonV4: {fileID: 3330925503045198327, guid: 8c0d5fada75be8e459a2f3c80fbd01a8, type: 3}
+  TelaM1: {fileID: 3330925503045198327, guid: 783f87af988dde04fab3ba8e8118e529, type: 3}
+  TelaM2: {fileID: 3330925503045198327, guid: 20a966b6faf260a45966a9978c322e92, type: 3}
+  TelaM3: {fileID: 3330925503045198327, guid: e9c052a3dad69a2469f9762671ae0752, type: 3}
+  TelaM4: {fileID: 3330925503045198327, guid: d65db577693a2de41a7b805e981bf21a, type: 3}
+  TelaR1: {fileID: 3330925503045198327, guid: 246346e245b45844faf24c59d73265d5, type: 3}
+  TelaR2: {fileID: 3330925503045198327, guid: d72f45227a56e344ca8cabdc1c6e37aa, type: 3}
+  TelaR3: {fileID: 3330925503045198327, guid: 91ce50cb40b6f124ba531feddc68e7b1, type: 3}
+  TelaR4: {fileID: 3330925503045198327, guid: f3e30d288c3c7b14cb6f28725dc4f581, type: 3}
+  TelaV1: {fileID: 3330925503045198327, guid: 18ee9a494f3670f4f9820cd9ad607259, type: 3}
+  TelaV2: {fileID: 3330925503045198327, guid: 76dc0f5ff4926c646890cf78a51cd63c, type: 3}
+  TelaV3: {fileID: 3330925503045198327, guid: c7d630457d8c3654fae7ddcf216b69eb, type: 3}
+  TelaV4: {fileID: 3330925503045198327, guid: 9543f1ecfc6c5394da94978b85d2884b, type: 3}
+  VictoryBR: {fileID: 3330925503045198327, guid: 1828500b4372fbe4aaef92c543312aa6, type: 3}
+  VictoryBM: {fileID: 3330925503045198327, guid: 768ab87bd2cc54547973f8db2c1441fe, type: 3}
+  VictoryBV: {fileID: 3330925503045198327, guid: 5e9a40d1cc872f24da81bf774bef047d, type: 3}
+  VictoryTR: {fileID: 3330925503045198327, guid: 30861186928c083479e81adcfc2c9cfd, type: 3}
+  VictoryTM: {fileID: 3330925503045198327, guid: e5382cb2a27ed3e4ea923ad38656065c, type: 3}
+  VictoryTV: {fileID: 3330925503045198327, guid: 00d696b1ecc5d074bad3940e010a2fbc, type: 3}
   Auxiliar: {fileID: 3330925503045198327, guid: 96c69677b243e8b489b6791c90473895, type: 3}
+  Auxiliar1: {fileID: 3330925503045198327, guid: 204032bcbc6bee34f91f11458fc4c3b6, type: 3}
   playerArea: {fileID: 0}
   enemyArea: {fileID: 0}
   dropZone: {fileID: 0}
   playerExtraArea: {fileID: 0}
   enemyExtraArea: {fileID: 0}
+  playerVictoryArea: {fileID: 0}
+  enemyVictoryArea: {fileID: 0}
+  allAvailableCards: []

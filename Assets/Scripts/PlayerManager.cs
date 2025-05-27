@@ -21,8 +21,24 @@ public class PlayerManager : NetworkBehaviour
     public GameObject BotonV3;
     public GameObject BotonV4;
 
+    public GameObject TelaM1;
+    public GameObject TelaM2;
+    public GameObject TelaM3;
+    public GameObject TelaM4;
+
+    public GameObject TelaR1;
+    public GameObject TelaR2;
+    public GameObject TelaR3;
+    public GameObject TelaR4;
+
+    public GameObject TelaV1;
+    public GameObject TelaV2;
+    public GameObject TelaV3;
+    public GameObject TelaV4;
+
 
     public GameObject Auxiliar;
+    public GameObject Auxiliar1;
 
     // Estas son las variables para referenciar las áreas del juego
     [SerializeField] private GameObject playerArea;
@@ -109,7 +125,24 @@ public class PlayerManager : NetworkBehaviour
         cards.Add(BotonV3);
         cards.Add(BotonV4);
 
-        auxiliar.Add(Auxiliar);//
+        cards.Add(TelaM1);
+        cards.Add(TelaM2);
+        cards.Add(TelaM3);
+        cards.Add(TelaM4);
+
+        cards.Add(TelaR1);
+        cards.Add(TelaR2);
+        cards.Add(TelaR3);
+        cards.Add(TelaR4);
+
+        cards.Add(TelaV1);
+        cards.Add(TelaV2);
+        cards.Add(TelaV3);
+        cards.Add(TelaV4);
+
+        //Auxiliares
+        auxiliar.Add(Auxiliar);
+        auxiliar.Add(Auxiliar1);//
 
         Debug.Log("Cartas disponibles en el servidor: " + cards.Count);
     }
@@ -192,11 +225,11 @@ public class PlayerManager : NetworkBehaviour
     private uint currentPlayedCardNetId = 0;
 
     // Método para eliminar la carta jugada (ATENCION)
-    [Command(requiresAuthority=false)]
-    public void CmdRemovePlayedCard(NetworkConnectionToClient conn=null)
+    [Command(requiresAuthority = false)]
+    public void CmdRemovePlayedCard(NetworkConnectionToClient conn = null)
     {
         Debug.Log($"[Server] Removiendo carta jugada para jugador {netId}");
-        
+
         if (currentPlayedCardNetId != 0)
         {
             // Buscar el objeto por su NetworkId
@@ -231,8 +264,6 @@ public class PlayerManager : NetworkBehaviour
     {
         Debug.Log($"[Client] La carta jugada será eliminada");
     }
-
-    // Método para jugar una carta aleatoria (para turnos automáticos)
 
     // Método para jugar una carta aleatoria (para turnos automáticos) - CORREGIDO
     [Server]
@@ -331,7 +362,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     // Método para asignar una nueva carta al jugador
-    [Command (requiresAuthority = false)]
+    [Command(requiresAuthority = false)]
     public void CmdAssignNewCard(NetworkConnectionToClient conn = null)
     {
         Debug.Log($"[Server] Asignando nueva carta al jugador {netId}");
@@ -346,7 +377,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    void RpcSetCardParent(GameObject card, string areaType)
+    public void RpcSetCardParent(GameObject card, string areaType)
     {
         if (card == null) return;
 
@@ -482,24 +513,6 @@ public class PlayerManager : NetworkBehaviour
     [TargetRpc]
     void TargetOtherCard(NetworkConnection target) => Debug.Log("Targeted by Other!");
 
-    // Método para incrementar clicks en una carta
-    [Command]
-    public void CmdIncrementClick(GameObject card)
-    {
-        RpcIncrementClick(card);
-    }
-
-    [ClientRpc]
-    void RpcIncrementClick(GameObject card)
-    {
-        var click = card.GetComponent<incrementClick>();
-        if (click != null)
-        {
-            click.NumberOfClicks++;
-            Debug.Log("This card has been clicked " + click.NumberOfClicks + " times!");
-        }
-    }
-
     // Método para resetear el estado de jugada
     [Command]
     public void CmdResetHasPlayedCard()
@@ -534,23 +547,13 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     private void InitializeAvailableCards()
     {
-        // Inicializar con todas las variantes de cartas
-        // Aquí deberías agregar todas las cartas posibles del juego
-        // Por ejemplo, diferentes niveles de la misma carta:
+        // Limpiar la lista por si acaso
+        allAvailableCards.Clear();
 
-        // Cartas Botón Rojas (niveles 1, 2, 3)
-        allAvailableCards.Add(BotonR1); // Nivel 1
-                                        // Agregar BotonR1_Level2, BotonR1_Level3 si existen
+        // Agregar todas las cartas de la lista existente
+        allAvailableCards.AddRange(cards);
 
-        // Cartas Botón Verdes
-        allAvailableCards.Add(BotonV1);
-        // etc...
-
-        // Cartas Botón Moradas
-        allAvailableCards.Add(BotonM1);
-        // etc...
-
-        // Repite para todos los elementos y niveles
+        Debug.Log($"Cartas disponibles inicializadas: {allAvailableCards.Count}");
     }
 
     public List<GameObject> GetAvailableCards()
@@ -629,4 +632,48 @@ public class PlayerManager : NetworkBehaviour
         return FindCardByCriteria(newElement, originalCard.color, originalCard.starLevel) != null;
     }
 
+    // Método para incrementar clicks en una carta - CORREGIDO
+    [Command]
+    public void CmdIncrementClick(GameObject card)
+    {
+        // Validar que la carta no sea null antes de proceder
+        if (card == null)
+        {
+            Debug.LogWarning("[Server] CmdIncrementClick: carta es null, ignorando comando");
+            return;
+        }
+
+        // Verificar que la carta tenga NetworkIdentity
+        NetworkIdentity cardNetId = card.GetComponent<NetworkIdentity>();
+        if (cardNetId == null)
+        {
+            Debug.LogWarning("[Server] CmdIncrementClick: carta no tiene NetworkIdentity");
+            return;
+        }
+
+        RpcIncrementClick(card);
+    }
+
+    [ClientRpc]
+    void RpcIncrementClick(GameObject card)
+    {
+        // CORRECCIÓN PRINCIPAL: Validar que la carta no sea null
+        if (card == null)
+        {
+            Debug.LogWarning("[Client] RpcIncrementClick: carta recibida es null, ignorando RPC");
+            return;
+        }
+
+        var click = card.GetComponent<incrementClick>();
+        if (click != null)
+        {
+            click.NumberOfClicks++;
+            Debug.Log("This card has been clicked " + click.NumberOfClicks + " times!");
+        }
+        else
+        {
+            Debug.LogWarning("[Client] RpcIncrementClick: carta no tiene componente incrementClick");
+        }
+    }
 }
+
