@@ -215,7 +215,8 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
     private GameObject FindCardWithHigherLevel(PlayerManager playerManager, CardData originalCard)
     {
         var availableCards = playerManager.GetAvailableCards();
-        Debug.Log($"Buscando carta de nivel superior. Cartas disponibles: {availableCards.Count}");
+        Debug.Log($"Buscando carta de nivel superior a {originalCard.starLevel}. Cartas disponibles: {availableCards.Count}");
+        Debug.Log($"Carta original: {originalCard.cardName} - Elemento: {originalCard.element}, Color: {originalCard.color}, Nivel: {originalCard.starLevel}");
 
         foreach (GameObject cardPrefab in availableCards)
         {
@@ -224,16 +225,18 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
             {
                 Debug.Log($"Evaluando carta: {prefabData.cardName} - Elemento: {prefabData.element}, Color: {prefabData.color}, Nivel: {prefabData.starLevel}");
 
+                // Buscar cartas del mismo elemento y color, pero de nivel superior
                 if (prefabData.element == originalCard.element &&
                     prefabData.color == originalCard.color &&
-                    prefabData.starLevel > originalCard.starLevel &&
-                    prefabData.starLevel <= 3)
+                    prefabData.starLevel > originalCard.starLevel)
                 {
-                    Debug.Log($"¡Carta encontrada! {prefabData.cardName} nivel {prefabData.starLevel}");
+                    Debug.Log($"¡Carta de nivel superior encontrada! {prefabData.cardName} nivel {prefabData.starLevel}");
                     return cardPrefab;
                 }
             }
         }
+
+        Debug.Log($"No se encontró carta de nivel superior para {originalCard.element} {originalCard.color} nivel {originalCard.starLevel}");
         return null;
     }
 
@@ -265,7 +268,7 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
     [Server]
     private void ReplaceCard(GameObject oldCard, GameObject newCardPrefab)
     {
-        Debug.Log($"[Server] Iniciando reemplazo de carta");
+        Debug.Log($"[Server] Iniciando reemplazo de carta {oldCard.name}");
 
         Transform originalParent = oldCard.transform.parent;
         Vector3 originalPosition = oldCard.transform.position;
@@ -276,37 +279,61 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
         NetworkIdentity oldCardNetId = oldCard.GetComponent<NetworkIdentity>();
         NetworkConnectionToClient ownerConnection = oldCardNetId.connectionToClient;
 
-        Debug.Log($"Creando nueva carta en posición {originalPosition}");
+        Debug.Log($"[Server] Información de la carta original:");
+        Debug.Log($"  - Padre: {(originalParent != null ? originalParent.name : "null")}");
+        Debug.Log($"  - Posición: {originalPosition}");
+        Debug.Log($"  - Posición local: {originalLocalPosition}");
+        Debug.Log($"  - Propietario: {ownerConnection}");
 
-        // Crear la nueva carta
+        // CORRECCIÓN: Crear la nueva carta ANTES de destruir la original
+        // para evitar problemas de referencia
+        Debug.Log($"[Server] Creando nueva carta: {newCardPrefab.name}");
         GameObject newCard = Instantiate(newCardPrefab, originalPosition, originalRotation);
 
-        // Spawnnear en la red
+        // Spawnnear en la red con el mismo propietario
         NetworkServer.Spawn(newCard, ownerConnection);
 
-        // Configurar posición después del spawn
-        if (originalParent != null)
-        {
-            RpcSetCardPosition(newCard, originalParent, originalLocalPosition);
-        }
+        // Configurar posición y padre usando RPC
+        string parentName = originalParent != null ? originalParent.name : "";
+        string areaType = DetermineAreaType(parentName);
 
-        Debug.Log($"Nueva carta creada: {newCard.name}");
+        Debug.Log($"[Server] Configurando nueva carta en área: {areaType} (padre: {parentName})");
 
-        // Destruir la carta original
+        // AHORA destruir la carta original
         NetworkServer.Destroy(oldCard);
 
-        Debug.Log("Carta reemplazada exitosamente");
+        // Usar el sistema existente de PlayerManager para establecer el padre correctamente
+        PlayerManager playerManager = GetPlayerManager(ownerConnection);
+        if (playerManager != null)
+        {
+            // Usar el método RpcSetCardParent existente del PlayerManager
+            playerManager.RpcSetCardParent(newCard, areaType);
+        }
+        else
+        {
+            Debug.LogError("[Server] No se pudo encontrar PlayerManager para configurar la nueva carta");
+        }
+
+        Debug.Log($"[Server] Reemplazo de carta completado. Nueva carta: {newCard.name}");
     }
 
-    [ClientRpc]
-    private void RpcSetCardPosition(GameObject newCard, Transform parent, Vector3 localPosition)
+    [Server]
+    private string DetermineAreaType(string parentName)
     {
-        if (newCard != null && parent != null)
-        {
-            Debug.Log($"[Client] Configurando posición de nueva carta");
-            newCard.transform.SetParent(parent, false);
-            newCard.transform.localPosition = localPosition;
-        }
+        if (string.IsNullOrEmpty(parentName))
+            return "Player"; // Default
+
+        // Mapear nombres de padres a tipos de área
+        if (parentName.Contains("AreaJugador") || parentName.Contains("Player"))
+            return "Player";
+        else if (parentName.Contains("AreaEnemigo") || parentName.Contains("Enemy"))
+            return "Player"; // Seguirá siendo del jugador, pero se mostrará en el área enemiga
+        else if (parentName.Contains("Limite") || parentName.Contains("DropZone"))
+            return "DropZone";
+        else if (parentName.Contains("Extra"))
+            return "Extra";
+
+        return "Player"; // Default
     }
 
     [ClientRpc]

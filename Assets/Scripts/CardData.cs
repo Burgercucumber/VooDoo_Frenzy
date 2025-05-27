@@ -47,3 +47,4 @@ public class CardData : MonoBehaviour, IPointerDownHandler
         }
     }
 }
+
