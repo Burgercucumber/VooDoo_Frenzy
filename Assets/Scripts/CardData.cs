@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class CardData : MonoBehaviour
+public class CardData : MonoBehaviour, IPointerDownHandler
 {
-    public CardData card;
     public enum ElementType
     {
         Boton,
@@ -28,4 +28,22 @@ public class CardData : MonoBehaviour
     [TextArea]
     public string description;
 
+    // Implementar IPointerDownHandler para detectar clicks
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        Debug.Log($"Carta {cardName} clickeada");
+
+        // Verificar si hay una carta auxiliar seleccionada
+        if (AuxiliaryCard.HasSelectedAuxiliary())
+        {
+            Debug.Log($"Aplicando efecto de carta auxiliar a {cardName}");
+            // Llamar al método estático de AuxiliaryCard
+            AuxiliaryCard.OnCardClicked(gameObject);
+        }
+        else
+        {
+            Debug.Log("No hay carta auxiliar seleccionada");
+            // Aquí puedes agregar la lógica normal de click de carta
+        }
+    }
 }

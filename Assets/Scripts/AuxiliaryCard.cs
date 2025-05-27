@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using Mirror;
 
-public class AuxiliaryCard : NetworkBehaviour
+public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
 {
     public enum AuxiliaryType
     {
@@ -19,10 +20,10 @@ public class AuxiliaryCard : NetworkBehaviour
     private static AuxiliaryCard selectedAuxiliary = null;
     private bool isSelected = false;
 
-    private void OnMouseDown()
+    // Implementar IPointerDownHandler en lugar de OnMouseDown
+    public void OnPointerDown(PointerEventData eventData)
     {
         // Solo el dueño puede usar sus cartas auxiliares
-        // Verificar si este cliente tiene autoridad sobre esta carta auxiliar
         if (!isOwned)
         {
             Debug.Log("No eres el dueño de esta carta auxiliar");
@@ -49,13 +50,6 @@ public class AuxiliaryCard : NetworkBehaviour
         // Efecto visual de selección - solo cambiar escala
         transform.localScale = Vector3.one * 1.1f;
 
-        // Si quieres cambiar color y usas otro tipo de renderer, descomenta y adapta:
-        // Renderer renderer = GetComponent<Renderer>();
-        // if (renderer != null)
-        // {
-        //     renderer.material.color = Color.yellow;
-        // }
-
         Debug.Log($"Carta auxiliar {auxiliaryType} seleccionada. Haz clic en una carta para aplicar el efecto.");
     }
 
@@ -65,13 +59,6 @@ public class AuxiliaryCard : NetworkBehaviour
 
         // Restaurar escala original
         transform.localScale = Vector3.one;
-
-        // Si quieres restaurar color y usas otro tipo de renderer, descomenta y adapta:
-        // Renderer renderer = GetComponent<Renderer>();
-        // if (renderer != null)
-        // {
-        //     renderer.material.color = Color.white;
-        // }
     }
 
     // Método estático para verificar si hay una auxiliar seleccionada
@@ -90,26 +77,26 @@ public class AuxiliaryCard : NetworkBehaviour
         }
 
         Debug.Log($"Aplicando efecto {selectedAuxiliary.auxiliaryType} a la carta {targetCard.name}");
+
+        // CORRECCIÓN IMPORTANTE: Verificar que el targetCard tenga NetworkIdentity
+        NetworkIdentity targetNetId = targetCard.GetComponent<NetworkIdentity>();
+        if (targetNetId == null)
+        {
+            Debug.LogError("La carta objetivo no tiene NetworkIdentity. No se puede procesar en red.");
+            return;
+        }
+
         selectedAuxiliary.CmdUseAuxiliaryCard(targetCard);
     }
 
     [Command]
     public void CmdUseAuxiliaryCard(GameObject targetCard)
     {
+        Debug.Log($"[Server] Procesando uso de carta auxiliar {auxiliaryType} en {targetCard.name}");
+
         // Obtener el PlayerManager del jugador que posee esta carta auxiliar
         NetworkIdentity ownerIdentity = GetComponent<NetworkIdentity>();
-        PlayerManager playerManager = null;
-
-        // Buscar el PlayerManager asociado con la conexión del cliente
-        PlayerManager[] allPlayers = FindObjectsOfType<PlayerManager>();
-        foreach (PlayerManager pm in allPlayers)
-        {
-            if (pm.connectionToClient == ownerIdentity.connectionToClient)
-            {
-                playerManager = pm;
-                break;
-            }
-        }
+        PlayerManager playerManager = GetPlayerManager(ownerIdentity.connectionToClient);
 
         if (playerManager == null)
         {
@@ -151,7 +138,13 @@ public class AuxiliaryCard : NetworkBehaviour
     private bool TryLevelUpCard(PlayerManager playerManager, GameObject targetCard)
     {
         CardData cardData = targetCard.GetComponent<CardData>();
-        if (cardData == null || cardData.starLevel >= 3)
+        if (cardData == null)
+        {
+            Debug.LogError("La carta objetivo no tiene componente CardData");
+            return false;
+        }
+
+        if (cardData.starLevel >= 3)
         {
             Debug.Log("La carta no se puede mejorar más (nivel máximo alcanzado)");
             return false;
@@ -161,6 +154,7 @@ public class AuxiliaryCard : NetworkBehaviour
         GameObject higherLevelCard = FindCardWithHigherLevel(playerManager, cardData);
         if (higherLevelCard != null)
         {
+            Debug.Log($"Reemplazando carta nivel {cardData.starLevel} por nivel {higherLevelCard.GetComponent<CardData>().starLevel}");
             ReplaceCard(targetCard, higherLevelCard);
             return true;
         }
@@ -173,7 +167,11 @@ public class AuxiliaryCard : NetworkBehaviour
     private bool TryElementChangeCard(PlayerManager playerManager, GameObject targetCard)
     {
         CardData originalCardData = targetCard.GetComponent<CardData>();
-        if (originalCardData == null) return false;
+        if (originalCardData == null)
+        {
+            Debug.LogError("La carta objetivo no tiene componente CardData");
+            return false;
+        }
 
         CardData.ElementType[] elements = {
             CardData.ElementType.Boton,
@@ -190,6 +188,7 @@ public class AuxiliaryCard : NetworkBehaviour
                 GameObject cardWithElement = FindCardWithElement(playerManager, originalCardData, element);
                 if (cardWithElement != null)
                 {
+                    Debug.Log($"Cambiando elemento de {originalCardData.element} a {element}");
                     ReplaceCard(targetCard, cardWithElement);
                     return true;
                 }
@@ -206,8 +205,6 @@ public class AuxiliaryCard : NetworkBehaviour
         PlayerManager opponent = GetOpponentPlayer();
         if (opponent != null)
         {
-            // Asumiendo que tienes un sistema de victorias implementado
-            // return PlayerVictoryTracker.RemoveRandomVictory(opponent);
             Debug.Log("Efecto RemoveVictory aplicado (placeholder)");
             return true; // Placeholder - implementar según tu sistema de victorias
         }
@@ -217,16 +214,24 @@ public class AuxiliaryCard : NetworkBehaviour
     [Server]
     private GameObject FindCardWithHigherLevel(PlayerManager playerManager, CardData originalCard)
     {
-        foreach (GameObject cardPrefab in playerManager.GetAvailableCards())
+        var availableCards = playerManager.GetAvailableCards();
+        Debug.Log($"Buscando carta de nivel superior. Cartas disponibles: {availableCards.Count}");
+
+        foreach (GameObject cardPrefab in availableCards)
         {
             CardData prefabData = cardPrefab.GetComponent<CardData>();
-            if (prefabData != null &&
-                prefabData.element == originalCard.element &&
-                prefabData.color == originalCard.color &&
-                prefabData.starLevel > originalCard.starLevel &&
-                prefabData.starLevel <= 3)
+            if (prefabData != null)
             {
-                return cardPrefab;
+                Debug.Log($"Evaluando carta: {prefabData.cardName} - Elemento: {prefabData.element}, Color: {prefabData.color}, Nivel: {prefabData.starLevel}");
+
+                if (prefabData.element == originalCard.element &&
+                    prefabData.color == originalCard.color &&
+                    prefabData.starLevel > originalCard.starLevel &&
+                    prefabData.starLevel <= 3)
+                {
+                    Debug.Log($"¡Carta encontrada! {prefabData.cardName} nivel {prefabData.starLevel}");
+                    return cardPrefab;
+                }
             }
         }
         return null;
@@ -235,15 +240,23 @@ public class AuxiliaryCard : NetworkBehaviour
     [Server]
     private GameObject FindCardWithElement(PlayerManager playerManager, CardData originalCard, CardData.ElementType newElement)
     {
-        foreach (GameObject cardPrefab in playerManager.GetAvailableCards())
+        var availableCards = playerManager.GetAvailableCards();
+        Debug.Log($"Buscando carta con elemento {newElement}. Cartas disponibles: {availableCards.Count}");
+
+        foreach (GameObject cardPrefab in availableCards)
         {
             CardData prefabData = cardPrefab.GetComponent<CardData>();
-            if (prefabData != null &&
-                prefabData.element == newElement &&
-                prefabData.color == originalCard.color &&
-                prefabData.starLevel == originalCard.starLevel)
+            if (prefabData != null)
             {
-                return cardPrefab;
+                Debug.Log($"Evaluando carta: {prefabData.cardName} - Elemento: {prefabData.element}, Color: {prefabData.color}, Nivel: {prefabData.starLevel}");
+
+                if (prefabData.element == newElement &&
+                    prefabData.color == originalCard.color &&
+                    prefabData.starLevel == originalCard.starLevel)
+                {
+                    Debug.Log($"¡Carta encontrada! {prefabData.cardName} con elemento {newElement}");
+                    return cardPrefab;
+                }
             }
         }
         return null;
@@ -252,19 +265,32 @@ public class AuxiliaryCard : NetworkBehaviour
     [Server]
     private void ReplaceCard(GameObject oldCard, GameObject newCardPrefab)
     {
+        Debug.Log($"[Server] Iniciando reemplazo de carta");
+
         Transform originalParent = oldCard.transform.parent;
+        Vector3 originalPosition = oldCard.transform.position;
         Vector3 originalLocalPosition = oldCard.transform.localPosition;
+        Quaternion originalRotation = oldCard.transform.rotation;
 
         // Obtener la conexión del jugador propietario de la carta original
         NetworkIdentity oldCardNetId = oldCard.GetComponent<NetworkIdentity>();
         NetworkConnectionToClient ownerConnection = oldCardNetId.connectionToClient;
 
+        Debug.Log($"Creando nueva carta en posición {originalPosition}");
+
         // Crear la nueva carta
-        GameObject newCard = Instantiate(newCardPrefab, oldCard.transform.position, oldCard.transform.rotation);
+        GameObject newCard = Instantiate(newCardPrefab, originalPosition, originalRotation);
+
+        // Spawnnear en la red
         NetworkServer.Spawn(newCard, ownerConnection);
 
-        // Configurar posición
-        RpcSetCardPosition(newCard, originalParent, originalLocalPosition);
+        // Configurar posición después del spawn
+        if (originalParent != null)
+        {
+            RpcSetCardPosition(newCard, originalParent, originalLocalPosition);
+        }
+
+        Debug.Log($"Nueva carta creada: {newCard.name}");
 
         // Destruir la carta original
         NetworkServer.Destroy(oldCard);
@@ -277,6 +303,7 @@ public class AuxiliaryCard : NetworkBehaviour
     {
         if (newCard != null && parent != null)
         {
+            Debug.Log($"[Client] Configurando posición de nueva carta");
             newCard.transform.SetParent(parent, false);
             newCard.transform.localPosition = localPosition;
         }
@@ -292,21 +319,27 @@ public class AuxiliaryCard : NetworkBehaviour
         Deselect();
     }
 
+    // Método helper para obtener PlayerManager
+    private PlayerManager GetPlayerManager(NetworkConnectionToClient connection)
+    {
+        PlayerManager[] allPlayers = FindObjectsOfType<PlayerManager>();
+        foreach (PlayerManager pm in allPlayers)
+        {
+            if (pm.connectionToClient == connection)
+            {
+                return pm;
+            }
+        }
+        return null;
+    }
+
     private PlayerManager GetOpponentPlayer()
     {
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
         NetworkIdentity ownerIdentity = GetComponent<NetworkIdentity>();
 
         // Buscar el PlayerManager del jugador actual
-        PlayerManager ownerPlayer = null;
-        foreach (PlayerManager player in players)
-        {
-            if (player.connectionToClient == ownerIdentity.connectionToClient)
-            {
-                ownerPlayer = player;
-                break;
-            }
-        }
+        PlayerManager ownerPlayer = GetPlayerManager(ownerIdentity.connectionToClient);
 
         // Retornar el otro jugador
         foreach (PlayerManager player in players)
