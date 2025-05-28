@@ -18,6 +18,21 @@ public static class PlayerVictoryTracker
     }
 
     private static Dictionary<PlayerManager, List<Victory>> victories = new Dictionary<PlayerManager, List<Victory>>();
+    private static VictoryDisplayManager displayManager;
+
+    // Obtener referencia al VictoryDisplayManager
+    private static VictoryDisplayManager GetDisplayManager()
+    {
+        if (displayManager == null)
+        {
+            displayManager = GameObject.FindObjectOfType<VictoryDisplayManager>();
+            if (displayManager == null)
+            {
+                Debug.LogWarning("No se encontró VictoryDisplayManager en la escena");
+            }
+        }
+        return displayManager;
+    }
 
     public static void AddVictory(PlayerManager player)
     {
@@ -32,6 +47,14 @@ public static class PlayerVictoryTracker
         {
             victories[player].Add(newVictory);
             ShowVictoryUI(cardData);
+
+            // NUEVO: Mostrar insignia de victoria
+            VictoryDisplayManager manager = GetDisplayManager();
+            if (manager != null)
+            {
+                manager.ShowVictoryBadge(player, cardData.element, cardData.color);
+            }
+
             Debug.Log($"Victoria añadida para {player.name}: {cardData.element} - {cardData.color}");
         }
     }
@@ -52,6 +75,13 @@ public static class PlayerVictoryTracker
         playerVictories.RemoveAt(randomIndex);
 
         Debug.Log($"Victoria removida de {player.name}: {removedVictory.element} - {removedVictory.color}");
+
+        // NUEVO: Remover insignia correspondiente
+        VictoryDisplayManager manager = GetDisplayManager();
+        if (manager != null)
+        {
+            manager.RemovePlayerBadge(player, removedVictory.element, removedVictory.color);
+        }
 
         // Actualizar UI de victorias
         UpdateVictoryUI(player);
@@ -75,6 +105,14 @@ public static class PlayerVictoryTracker
             {
                 playerVictories.RemoveAt(i);
                 Debug.Log($"Victoria específica removida de {player.name}: {element} - {color}");
+
+                // NUEVO: Remover insignia específica
+                VictoryDisplayManager manager = GetDisplayManager();
+                if (manager != null)
+                {
+                    manager.RemovePlayerBadge(player, element, color);
+                }
+
                 UpdateVictoryUI(player);
                 return true;
             }
@@ -181,6 +219,14 @@ public static class PlayerVictoryTracker
     public static void ResetVictories()
     {
         victories.Clear();
+
+        // NUEVO: Resetear todas las insignias
+        VictoryDisplayManager manager = GetDisplayManager();
+        if (manager != null)
+        {
+            manager.ResetAllBadges();
+        }
+
         Debug.Log("Todas las victorias han sido reseteadas");
     }
 
