@@ -214,7 +214,7 @@ public class RoundManager : NetworkBehaviour
         StartRound();
     }
 
-    // Añadido 
+    // Añadido con animaciones simples
 
     [Server]
     public void ResolveRound()
@@ -252,16 +252,21 @@ public class RoundManager : NetworkBehaviour
 
         var result = CardBattleLogic.CompareCards(cardData1, cardData2);
 
+        // Determinar qué elemento ganó para la animación
+        CardData.ElementType winnerElement = CardData.ElementType.Boton; // valor por defecto
+
         switch (result)
         {
             case CardBattleLogic.BattleResult.WinA:
                 Debug.Log($"Jugador {resolvedPlayer1.netId} gana la ronda.");
                 PlayerVictoryTracker.AddVictory(resolvedPlayer1);
+                winnerElement = cardData1.element;
                 break;
 
             case CardBattleLogic.BattleResult.WinB:
                 Debug.Log($"Jugador {resolvedPlayer2.netId} gana la ronda.");
                 PlayerVictoryTracker.AddVictory(resolvedPlayer2);
+                winnerElement = cardData2.element;
                 break;
 
             case CardBattleLogic.BattleResult.Draw:
@@ -269,16 +274,14 @@ public class RoundManager : NetworkBehaviour
                 break;
         }
 
-        //resolvedPlayer1.CmdRemovePlayedCard();
-        //resolvedPlayer2.CmdRemovePlayedCard();
+        // Reproducir animaciones
+        SimpleBattleAnimator animator = SimpleBattleAnimator.Instance;
+        if (animator != null)
+        {
+            animator.PlayBattleAnimations(winnerElement, result);
+        }
 
-        //resolvedPlayer1.RpcResetCardPlay();
-        //resolvedPlayer2.RpcResetCardPlay();
-
-        //resolvedPlayer1.CmdAssignNewCard();
-        //resolvedPlayer2.CmdAssignNewCard();
-
-        CheckForGameVictory();  // <- usar los jugadores válidos
+        CheckForGameVictory();
     }
 
 
@@ -294,12 +297,23 @@ public class RoundManager : NetworkBehaviour
         if (PlayerVictoryTracker.HasPlayerWon(players[0]))
         {
             Debug.Log($"Jugador {players[0].netId} gana el juego!");
+            // Mostrar animación especial de victoria del juego
+            SimpleBattleAnimator animator = SimpleBattleAnimator.Instance;
+            if (animator != null)
+            {
+                animator.ShowVictoryAnimation();
+            }
         }
         else if (PlayerVictoryTracker.HasPlayerWon(players[1]))
         {
             Debug.Log($"Jugador {players[1].netId} gana el juego!");
+            // Mostrar animación especial de victoria del juego
+            SimpleBattleAnimator animator = SimpleBattleAnimator.Instance;
+            if (animator != null)
+            {
+                animator.ShowVictoryAnimation();
+            }
         }
     }
 
 }
-
