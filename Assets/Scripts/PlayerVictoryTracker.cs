@@ -48,7 +48,7 @@ public static class PlayerVictoryTracker
             victories[player].Add(newVictory);
             ShowVictoryUI(cardData);
 
-            // NUEVO: Mostrar insignia de victoria
+            // Mostrar insignia de victoria
             VictoryDisplayManager manager = GetDisplayManager();
             if (manager != null)
             {
@@ -56,7 +56,36 @@ public static class PlayerVictoryTracker
             }
 
             Debug.Log($"Victoria añadida para {player.name}: {cardData.element} - {cardData.color}");
+
+            // Verificar si el jugador ha ganado después de añadir la victoria
+            if (HasPlayerWon(player))
+            {
+                Debug.Log($"¡{player.name} ha ganado el juego!");
+                // Aquí puedes añadir la lógica para manejar la victoria del jugador
+                OnPlayerWins(player);
+            }
         }
+    }
+
+    // Nuevo método para manejar cuando un jugador gana
+    private static void OnPlayerWins(PlayerManager player)
+    {
+        // Determinar el tipo de victoria
+        var playerVictories = victories[player];
+        string victoryType = "";
+
+        if (CheckFourDifferentElements(playerVictories))
+        {
+            victoryType = "4 Elementos Diferentes";
+        }
+        else if (CheckColorVictory(playerVictories))
+        {
+            victoryType = "Victoria por Color (4+ del mismo elemento, máx 2 por color)";
+        }
+
+        Debug.Log($"Tipo de victoria de {player.name}: {victoryType}");
+
+        // Aquí puedes añadir más lógica para mostrar la pantalla de victoria, etc.
     }
 
     // Nuevo método para remover una victoria aleatoria
@@ -76,7 +105,7 @@ public static class PlayerVictoryTracker
 
         Debug.Log($"Victoria removida de {player.name}: {removedVictory.element} - {removedVictory.color}");
 
-        // NUEVO: Remover insignia correspondiente
+        // Remover insignia correspondiente
         VictoryDisplayManager manager = GetDisplayManager();
         if (manager != null)
         {
@@ -106,7 +135,7 @@ public static class PlayerVictoryTracker
                 playerVictories.RemoveAt(i);
                 Debug.Log($"Victoria específica removida de {player.name}: {element} - {color}");
 
-                // NUEVO: Remover insignia específica
+                // Remover insignia específica
                 VictoryDisplayManager manager = GetDisplayManager();
                 if (manager != null)
                 {
@@ -161,12 +190,27 @@ public static class PlayerVictoryTracker
         if (!victories.ContainsKey(player))
             return true;
 
+        // Contar cuántas veces ya tiene esta combinación específica (elemento + color)
+        int currentCount = 0;
         foreach (var v in victories[player])
         {
             if (v.element == newVictory.element && v.color == newVictory.color)
-                return false;
+                currentCount++;
         }
-        return true;
+
+        // Permitir hasta 2 victorias de la misma combinación elemento-color
+        bool isValid = currentCount < 2;
+
+        if (!isValid)
+        {
+            Debug.Log($"Victoria rechazada para {player.name}: Ya tiene {currentCount} victorias de {newVictory.element}-{newVictory.color} (máximo permitido: 2)");
+        }
+        else
+        {
+            Debug.Log($"Victoria aceptada para {player.name}: {newVictory.element}-{newVictory.color} (será la #{currentCount + 1})");
+        }
+
+        return isValid;
     }
 
     public static bool HasPlayerWon(PlayerManager player)
@@ -174,7 +218,22 @@ public static class PlayerVictoryTracker
         if (!victories.ContainsKey(player)) return false;
 
         var winList = victories[player];
-        return CheckFourDifferentElements(winList) || CheckFourSameElementWithColorLimit(winList);
+
+        // Verificar victoria por 4 elementos diferentes
+        if (CheckFourDifferentElements(winList))
+        {
+            Debug.Log($"{player.name} ganó por 4 elementos diferentes");
+            return true;
+        }
+
+        // Verificar victoria por color (4+ del mismo elemento con máximo 2 por color)
+        if (CheckColorVictory(winList))
+        {
+            Debug.Log($"{player.name} ganó por victoria de color");
+            return true;
+        }
+
+        return false;
     }
 
     private static bool CheckFourDifferentElements(List<Victory> wins)
@@ -216,11 +275,104 @@ public static class PlayerVictoryTracker
         return false;
     }
 
+    // CORREGIDO: Método para verificar victoria por colores
+    // Victoria por color = 4+ victorias del MISMO ELEMENTO con diferentes colores,
+    // donde cada color no puede repetirse más de 2 veces
+    private static bool CheckColorVictory(List<Victory> wins)
+    {
+        // Agrupar victorias por elemento
+        var groupedByElement = new Dictionary<CardData.ElementType, List<CardData.ColorType>>();
+
+        foreach (var victory in wins)
+        {
+            if (!groupedByElement.ContainsKey(victory.element))
+                groupedByElement[victory.element] = new List<CardData.ColorType>();
+            groupedByElement[victory.element].Add(victory.color);
+        }
+
+        // Verificar cada elemento para ver si cumple las condiciones de victoria por color
+        foreach (var elementGroup in groupedByElement)
+        {
+            var element = elementGroup.Key;
+            var colors = elementGroup.Value;
+
+            // Debe tener al menos 4 victorias de este elemento
+            if (colors.Count >= 4)
+            {
+                // Contar cuántas veces aparece cada color para este elemento
+                var colorCount = new Dictionary<CardData.ColorType, int>();
+                foreach (var color in colors)
+                {
+                    if (!colorCount.ContainsKey(color))
+                        colorCount[color] = 0;
+                    colorCount[color]++;
+                }
+
+                // Verificar que ningún color se repita más de 2 veces
+                bool validColorDistribution = colorCount.Values.All(count => count <= 2);
+
+                if (validColorDistribution)
+                {
+                    Debug.Log($"Victoria por color lograda con elemento {element}:");
+                    foreach (var colorKvp in colorCount)
+                    {
+                        Debug.Log($"  - {colorKvp.Key}: {colorKvp.Value} veces");
+                    }
+                    return true;
+                }
+                else
+                {
+                    Debug.Log($"Elemento {element} tiene 4+ victorias pero distribución de colores inválida:");
+                    foreach (var colorKvp in colorCount)
+                    {
+                        Debug.Log($"  - {colorKvp.Key}: {colorKvp.Value} veces {(colorKvp.Value > 2 ? "(EXCEDE LÍMITE)" : "")}");
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Método adicional para obtener detalles de la victoria por colores
+    public static string GetColorVictoryDetails(PlayerManager player)
+    {
+        if (!victories.ContainsKey(player)) return "";
+
+        var playerVictories = victories[player];
+        var groupedByElement = new Dictionary<CardData.ElementType, Dictionary<CardData.ColorType, int>>();
+
+        // Agrupar por elemento y contar colores
+        foreach (var victory in playerVictories)
+        {
+            if (!groupedByElement.ContainsKey(victory.element))
+                groupedByElement[victory.element] = new Dictionary<CardData.ColorType, int>();
+
+            if (!groupedByElement[victory.element].ContainsKey(victory.color))
+                groupedByElement[victory.element][victory.color] = 0;
+
+            groupedByElement[victory.element][victory.color]++;
+        }
+
+        string details = "Distribución por elemento:\n";
+        foreach (var elementGroup in groupedByElement)
+        {
+            details += $"{elementGroup.Key}: ";
+            foreach (var colorCount in elementGroup.Value)
+            {
+                details += $"{colorCount.Key}({colorCount.Value}) ";
+            }
+            details += "\n";
+        }
+
+        return details;
+    }
+
     public static void ResetVictories()
     {
         victories.Clear();
 
-        // NUEVO: Resetear todas las insignias
+        // Resetear todas las insignias
         VictoryDisplayManager manager = GetDisplayManager();
         if (manager != null)
         {

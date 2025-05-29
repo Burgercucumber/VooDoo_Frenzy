@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System.Linq;
 
 public class VictoryDisplayManager : NetworkBehaviour
 {
@@ -228,8 +229,8 @@ public class VictoryDisplayManager : NetworkBehaviour
                     // Asegurar que esté activo
                     badge.SetActive(true);
 
-                    // Organizar las insignias en el área
-                    OrganizeBadgesInArea(targetArea.transform);
+                    // Organizar las insignias en el área con el nuevo sistema
+                    OrganizeBadgesInAreaByElement(targetArea.transform);
 
                     Debug.Log($"[Client] Insignia asignada correctamente a {targetArea.name}");
                 }
@@ -257,28 +258,160 @@ public class VictoryDisplayManager : NetworkBehaviour
         }
     }
 
-    // Método para organizar las insignias en filas/columnas
+    // Nuevo método para organizar las insignias por elemento y color
+    private void OrganizeBadgesInAreaByElement(Transform area)
+    {
+        // Obtener todas las insignias en el área
+        List<VictoryBadge> badges = new List<VictoryBadge>();
+
+        for (int i = 0; i < area.childCount; i++)
+        {
+            Transform child = area.GetChild(i);
+            VictoryBadge badge = child.GetComponent<VictoryBadge>();
+            if (badge != null)
+            {
+                badges.Add(badge);
+            }
+        }
+
+        if (badges.Count == 0) return;
+
+        // Agrupar por elemento, manteniendo el orden de aparición del primer color de cada elemento
+        var elementGroups = new Dictionary<CardData.ElementType, List<VictoryBadge>>();
+        var elementOrder = new List<CardData.ElementType>();
+
+        foreach (var badge in badges)
+        {
+            if (!elementGroups.ContainsKey(badge.element))
+            {
+                elementGroups[badge.element] = new List<VictoryBadge>();
+                elementOrder.Add(badge.element);
+            }
+            elementGroups[badge.element].Add(badge);
+        }
+
+        // Dentro de cada elemento, ordenar por color manteniendo el orden de aparición
+        foreach (var elementType in elementOrder)
+        {
+            var elementBadges = elementGroups[elementType];
+            var colorOrder = new List<CardData.ColorType>();
+            var colorGroups = new Dictionary<CardData.ColorType, List<VictoryBadge>>();
+
+            foreach (var badge in elementBadges)
+            {
+                if (!colorGroups.ContainsKey(badge.color))
+                {
+                    colorGroups[badge.color] = new List<VictoryBadge>();
+                    colorOrder.Add(badge.color);
+                }
+                colorGroups[badge.color].Add(badge);
+            }
+
+            // Reorganizar la lista de badges del elemento según el orden de colores
+            elementGroups[elementType].Clear();
+            foreach (var color in colorOrder)
+            {
+                elementGroups[elementType].AddRange(colorGroups[color]);
+            }
+        }
+
+        // Configurar espaciado
+        float horizontalSpacing = 60f; // Espaciado horizontal entre columnas (colores)
+        float verticalSpacing = 80f;   // Espaciado vertical entre filas (elementos)
+
+        int currentRow = 0;
+
+        // Posicionar las insignias
+        foreach (var elementType in elementOrder)
+        {
+            var elementBadges = elementGroups[elementType];
+
+            // Agrupar por color para esta fila
+            var colorGroups = new Dictionary<CardData.ColorType, List<VictoryBadge>>();
+            var colorOrder = new List<CardData.ColorType>();
+
+            foreach (var badge in elementBadges)
+            {
+                if (!colorGroups.ContainsKey(badge.color))
+                {
+                    colorGroups[badge.color] = new List<VictoryBadge>();
+                    colorOrder.Add(badge.color);
+                }
+                colorGroups[badge.color].Add(badge);
+            }
+
+            int currentCol = 0;
+
+            // Posicionar por columnas (colores)
+            foreach (var color in colorOrder)
+            {
+                var colorBadges = colorGroups[color];
+
+                // Si hay múltiples insignias del mismo color, las ponemos en columna
+                for (int i = 0; i < colorBadges.Count; i++)
+                {
+                    VictoryBadge badge = colorBadges[i];
+
+                    Vector3 position = new Vector3(
+                        currentCol * horizontalSpacing,
+                        -(currentRow + i) * verticalSpacing,
+                        0
+                    );
+
+                    badge.transform.localPosition = position;
+                }
+
+                currentCol++;
+            }
+
+            // Avanzar a la siguiente fila, considerando la altura máxima de las columnas
+            int maxBadgesInElement = colorGroups.Values.Max(list => list.Count);
+            currentRow += maxBadgesInElement;
+        }
+
+        // Centrar toda la disposición
+        CenterBadgeLayout(area);
+    }
+
+    // Método para centrar el layout de insignias
+    private void CenterBadgeLayout(Transform area)
+    {
+        if (area.childCount == 0) return;
+
+        // Calcular los límites del layout
+        float minX = float.MaxValue, maxX = float.MinValue;
+        float minY = float.MaxValue, maxY = float.MinValue;
+
+        for (int i = 0; i < area.childCount; i++)
+        {
+            Transform child = area.GetChild(i);
+            Vector3 pos = child.localPosition;
+
+            minX = Mathf.Min(minX, pos.x);
+            maxX = Mathf.Max(maxX, pos.x);
+            minY = Mathf.Min(minY, pos.y);
+            maxY = Mathf.Max(maxY, pos.y);
+        }
+
+        // Calcular el offset para centrar
+        Vector3 centerOffset = new Vector3(
+            -(minX + maxX) * 0.5f,
+            -(minY + maxY) * 0.5f,
+            0
+        );
+
+        // Aplicar el offset a todas las insignias
+        for (int i = 0; i < area.childCount; i++)
+        {
+            Transform child = area.GetChild(i);
+            child.localPosition += centerOffset;
+        }
+    }
+
+    // Método mantenido para compatibilidad, pero ahora llama al nuevo método
     private void OrganizeBadgesInArea(Transform area)
     {
-        int badgeCount = area.childCount;
-        float spacing = 60f; // Espaciado entre insignias
-        int maxPerRow = 4; // Máximo de insignias por fila
-
-        for (int i = 0; i < badgeCount; i++)
-        {
-            Transform badge = area.GetChild(i);
-
-            int row = i / maxPerRow;
-            int col = i % maxPerRow;
-
-            Vector3 position = new Vector3(
-                col * spacing - (maxPerRow - 1) * spacing * 0.5f,
-                -row * spacing,
-                0
-            );
-
-            badge.localPosition = position;
-        }
+        OrganizeBadgesInAreaByElement(area);
     }
 
     // Buscar el prefab de insignia correspondiente
@@ -376,7 +509,7 @@ public class VictoryDisplayManager : NetworkBehaviour
         GameObject targetArea = isLocalPlayer ? PlayerVictoryArea : EnemyVictoryArea;
         if (targetArea != null)
         {
-            OrganizeBadgesInArea(targetArea.transform);
+            OrganizeBadgesInAreaByElement(targetArea.transform);
         }
     }
 

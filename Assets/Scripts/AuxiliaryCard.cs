@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using Mirror;
+using System.Collections.Generic;
 
 public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
 {
@@ -50,7 +51,14 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
         // Efecto visual de selección - solo cambiar escala
         transform.localScale = Vector3.one * 1.1f;
 
-        Debug.Log($"Carta auxiliar {auxiliaryType} seleccionada. Haz clic en una carta para aplicar el efecto.");
+        if (auxiliaryType == AuxiliaryType.RemoveVictory)
+        {
+            Debug.Log("Carta RemoveVictory seleccionada. Haz clic en una insignia de victoria del oponente para eliminarla.");
+        }
+        else
+        {
+            Debug.Log($"Carta auxiliar {auxiliaryType} seleccionada. Haz clic en una carta para aplicar el efecto.");
+        }
     }
 
     private void Deselect()
@@ -76,6 +84,13 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
             return;
         }
 
+        // Solo procesar cartas normales para LevelUp y ElementChange
+        if (selectedAuxiliary.auxiliaryType == AuxiliaryType.RemoveVictory)
+        {
+            Debug.Log("La carta RemoveVictory requiere hacer clic en una insignia de victoria, no en una carta normal.");
+            return;
+        }
+
         Debug.Log($"Aplicando efecto {selectedAuxiliary.auxiliaryType} a la carta {targetCard.name}");
 
         // CORRECCIÓN IMPORTANTE: Verificar que el targetCard tenga NetworkIdentity
@@ -87,6 +102,25 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
         }
 
         selectedAuxiliary.CmdUseAuxiliaryCard(targetCard);
+    }
+
+    // NUEVO: Método específico para cuando se hace clic en una insignia de victoria
+    public static void OnVictoryBadgeClicked(CardData.ElementType element, CardData.ColorType color)
+    {
+        if (selectedAuxiliary == null)
+        {
+            Debug.Log("No hay carta auxiliar seleccionada");
+            return;
+        }
+
+        if (selectedAuxiliary.auxiliaryType != AuxiliaryType.RemoveVictory)
+        {
+            Debug.Log("Solo la carta RemoveVictory puede eliminar insignias de victoria");
+            return;
+        }
+
+        Debug.Log($"Eliminando insignia de victoria específica: {element} {color}");
+        selectedAuxiliary.CmdRemoveSpecificVictory(element, color);
     }
 
     [Command]
@@ -115,7 +149,8 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
                 effectApplied = TryElementChangeCard(playerManager, targetCard);
                 break;
             case AuxiliaryType.RemoveVictory:
-                effectApplied = TryRemoveVictory();
+                // Este caso ya no se usa, se maneja con CmdRemoveSpecificVictory
+                Debug.LogWarning("RemoveVictory debe usar CmdRemoveSpecificVictory en lugar de CmdUseAuxiliaryCard");
                 break;
         }
 
@@ -132,6 +167,53 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
         {
             Debug.Log($"No se pudo aplicar el efecto {auxiliaryType}. Operación cancelada.");
         }
+    }
+
+    // NUEVO: Command específico para remover una victoria específica
+    [Command]
+    public void CmdRemoveSpecificVictory(CardData.ElementType element, CardData.ColorType color)
+    {
+        Debug.Log($"[Server] === INICIANDO CmdRemoveSpecificVictory para {element} {color} ===");
+
+        PlayerManager opponent = GetOpponentPlayer();
+        if (opponent == null)
+        {
+            Debug.LogError("[Server] No se pudo encontrar el jugador oponente");
+            RpcClearSelection();
+            return;
+        }
+
+        Debug.Log($"[Server] Oponente encontrado: {opponent.name} (NetId: {opponent.netId})");
+
+        // Intentar remover la victoria específica del oponente
+        bool victoryRemoved = PlayerVictoryTracker.RemoveSpecificVictory(opponent, element, color);
+
+        // Limpiar selección
+        RpcClearSelection();
+
+        if (victoryRemoved)
+        {
+            Debug.Log($"[Server] Victoria específica removida exitosamente: {element} {color}");
+
+            // Notificar a todos los clientes sobre la remoción de victoria específica
+            RpcNotifySpecificVictoryRemoval(opponent.netId, element, color);
+
+            // Destruir la carta auxiliar después de usarla
+            NetworkServer.Destroy(gameObject);
+        }
+        else
+        {
+            Debug.LogError($"[Server] Falló la remoción de la victoria específica {element} {color}");
+        }
+    }
+
+    [ClientRpc]
+    private void RpcNotifySpecificVictoryRemoval(uint opponentNetId, CardData.ElementType element, CardData.ColorType color)
+    {
+        Debug.Log($"[Client] Victoria específica removida del jugador {opponentNetId}: {element} {color}");
+
+        // Aquí puedes agregar efectos visuales adicionales si lo deseas
+        // Por ejemplo, mostrar un mensaje en pantalla o efectos de partículas
     }
 
     [Server]
@@ -173,41 +255,51 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
             return false;
         }
 
-        CardData.ElementType[] elements = {
+        CardData.ElementType[] allElements = {
             CardData.ElementType.Boton,
             CardData.ElementType.Alfiler,
             CardData.ElementType.Tela,
             CardData.ElementType.Algodon
         };
 
-        // Buscar un elemento diferente disponible
-        foreach (CardData.ElementType element in elements)
+        // Crear lista de elementos diferentes al actual
+        List<CardData.ElementType> availableElements = new List<CardData.ElementType>();
+
+        foreach (CardData.ElementType element in allElements)
         {
             if (element != originalCardData.element)
             {
+                // Verificar si existe una carta con este elemento
                 GameObject cardWithElement = FindCardWithElement(playerManager, originalCardData, element);
                 if (cardWithElement != null)
                 {
-                    Debug.Log($"Cambiando elemento de {originalCardData.element} a {element}");
-                    ReplaceCard(targetCard, cardWithElement);
-                    return true;
+                    availableElements.Add(element);
                 }
             }
         }
 
-        Debug.Log("No se encontró una carta con elemento diferente disponible");
-        return false;
-    }
-
-    [Server]
-    private bool TryRemoveVictory()
-    {
-        PlayerManager opponent = GetOpponentPlayer();
-        if (opponent != null)
+        // Si no hay elementos disponibles, fallar
+        if (availableElements.Count == 0)
         {
-            Debug.Log("Efecto RemoveVictory aplicado (placeholder)");
-            return true; // Placeholder - implementar según tu sistema de victorias
+            Debug.Log("No se encontró ninguna carta con elemento diferente disponible");
+            return false;
         }
+
+        // Seleccionar un elemento aleatorio de los disponibles
+        int randomIndex = Random.Range(0, availableElements.Count);
+        CardData.ElementType selectedElement = availableElements[randomIndex];
+
+        // Obtener la carta con el elemento seleccionado
+        GameObject cardWithSelectedElement = FindCardWithElement(playerManager, originalCardData, selectedElement);
+
+        if (cardWithSelectedElement != null)
+        {
+            Debug.Log($"Cambiando elemento de {originalCardData.element} a {selectedElement}");
+            ReplaceCard(targetCard, cardWithSelectedElement);
+            return true;
+        }
+
+        Debug.Log("Error inesperado: no se pudo obtener la carta con el elemento seleccionado");
         return false;
     }
 
@@ -376,17 +468,24 @@ public class AuxiliaryCard : NetworkBehaviour, IPointerDownHandler
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
         NetworkIdentity ownerIdentity = GetComponent<NetworkIdentity>();
 
-        // Buscar el PlayerManager del jugador actual
+        // Buscar el PlayerManager del jugador actual (dueño de esta carta auxiliar)
         PlayerManager ownerPlayer = GetPlayerManager(ownerIdentity.connectionToClient);
 
-        // Retornar el otro jugador
+        Debug.Log($"[Server] Jugador propietario de la carta auxiliar: {(ownerPlayer != null ? ownerPlayer.name : "NULL")}");
+        Debug.Log($"[Server] Total de jugadores encontrados: {players.Length}");
+
+        // Retornar el otro jugador (el oponente)
         foreach (PlayerManager player in players)
         {
+            Debug.Log($"[Server] Evaluando jugador: {player.name} (NetId: {player.netId})");
             if (player != ownerPlayer)
             {
+                Debug.Log($"[Server] Oponente encontrado: {player.name}");
                 return player;
             }
         }
+
+        Debug.LogError("[Server] No se encontró jugador oponente");
         return null;
     }
 }

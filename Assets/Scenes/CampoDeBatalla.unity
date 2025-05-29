@@ -1395,6 +1395,10 @@ PrefabInstance:
       value: 2262836825
       objectReference: {fileID: 0}
     - target: {fileID: 5013393997363059774, guid: 9ae4d2d58a296384084d3a97e6089a61, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5013393997363059774, guid: 9ae4d2d58a296384084d3a97e6089a61, type: 3}
       propertyPath: m_StartAxis
       value: 0
       objectReference: {fileID: 0}
@@ -3637,6 +3641,10 @@ PrefabInstance:
       propertyPath: sceneId
       value: 2266138728
       objectReference: {fileID: 0}
+    - target: {fileID: 3791757473921926153, guid: 943e8f93fd23653439a467a5d3bc7972, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4730305476927721819, guid: 943e8f93fd23653439a467a5d3bc7972, type: 3}
       propertyPath: m_Name
       value: PlayerVictoryArea
@@ -3719,6 +3727,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5779648730941766086, guid: 943e8f93fd23653439a467a5d3bc7972, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6013156977326827997, guid: 943e8f93fd23653439a467a5d3bc7972, type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6013156977326827997, guid: 943e8f93fd23653439a467a5d3bc7972, type: 3}
