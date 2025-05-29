@@ -245,22 +245,32 @@ public class PlayerManager : NetworkBehaviour
     }
 
     // Método para jugar una carta
+    // MODIFICAR el método PlayCard existente para incluir más validaciones:
     public void PlayCard(GameObject card)
     {
+        Debug.Log($"[Client] Intentando jugar carta {card.name} - hasPlayedCard: {hasPlayedCard}");
+
         if (!hasPlayedCard)
         {
             CmdPlayCard(card);
         }
         else
         {
-            Debug.Log("Ya jugaste una carta, espera la siguiente ronda.");
+            Debug.Log($"[Client] Ya jugaste una carta esta ronda. hasPlayedCard = {hasPlayedCard}");
         }
     }
 
+    // MODIFICAR el método CmdPlayCard para incluir más logs:
     [Command]
     public void CmdPlayCard(GameObject card)
     {
-        if (hasPlayedCard) return;
+        Debug.Log($"[Server] Recibido comando para jugar carta {card.name} - hasPlayedCard actual: {hasPlayedCard}");
+
+        if (hasPlayedCard)
+        {
+            Debug.Log($"[Server] Comando rechazado - jugador {netId} ya jugó una carta");
+            return;
+        }
 
         hasPlayedCard = true;
 
@@ -736,5 +746,141 @@ public class PlayerManager : NetworkBehaviour
             Debug.LogWarning("[Client] RpcIncrementClick: carta no tiene componente incrementClick");
         }
     }
-}
 
+    // NUEVO: Método específico para resetear el estado del jugador después del reset del juego
+    [ClientRpc]
+    public void RpcResetPlayerStateAfterGameReset()
+    {
+        Debug.Log($"[Client] Reseteando estado del jugador {netId} después del reset del game");
+
+        // Forzar actualización de las referencias de área
+        playerArea = null;
+        enemyArea = null;
+        dropZone = null;
+        playerExtraArea = null;
+        enemyExtraArea = null;
+
+        // Triggear la búsqueda automática
+        var _ = PlayerArea;
+        var __ = EnemyArea;
+        var ___ = DropZone;
+
+        Debug.Log($"[Client] Estado del jugador {netId} reseteado completamente");
+    }
+
+    // NUEVO: Método para forzar reset completo del estado de cartas jugadas
+    [Command]
+    public void CmdForceResetPlayedCardState()
+    {
+        Debug.Log($"[Server] Forzando reset completo del estado de carta jugada para jugador {netId}");
+
+        hasPlayedCard = false;
+        currentPlayedCardNetId = 0;
+
+        // Notificar específicamente al cliente
+        TargetForceStateReset(connectionToClient);
+    }
+
+    [TargetRpc]
+    void TargetForceStateReset(NetworkConnection target)
+    {
+        Debug.Log($"[Client] Recibido reset forzado de estado para jugador {netId}");
+    }
+
+    [Server]
+    public void ForceResetAllStates()
+    {
+        Debug.Log($"[Server] Forzando reset completo de estados para jugador {netId}");
+
+        // Resetear inmediatamente todos los estados críticos
+        hasPlayedCard = false;
+        currentPlayedCardNetId = 0;
+
+        // Forzar sincronización inmediata a todos los clientes
+        RpcForceImmediateStateReset();
+    }
+
+    // NUEVO: Método para reset final del estado
+    [Server]
+    public void ForceFinalStateReset()
+    {
+        Debug.Log($"[Server] Aplicando reset final de estado para jugador {netId}");
+
+        // Asegurar que los estados estén en el valor inicial
+        hasPlayedCard = false;
+        currentPlayedCardNetId = 0;
+
+        // Enviar RPC específico para este jugador
+        TargetForceFinalReset(connectionToClient);
+    }
+
+    [ClientRpc]
+    void RpcForceImmediateStateReset()
+    {
+        Debug.Log($"[Client] Aplicando reset inmediato de estado para jugador {netId}");
+
+        // Limpiar cualquier estado local que pueda estar interfiriendo
+        ForceClientStateUpdate();
+    }
+
+    [TargetRpc]
+    void TargetForceFinalReset(NetworkConnection target)
+    {
+        Debug.Log($"[Client] Aplicando reset final específico para jugador {netId}");
+
+        // Reset final del estado del cliente
+        ForceClientStateUpdate();
+
+        // Si es el jugador local, asegurar que puede jugar cartas
+        if (isLocalPlayer)
+        {
+            Debug.Log($"[Client] Habilitando capacidad de jugar cartas para jugador local {netId}");
+            EnableCardPlay();
+        }
+    }
+
+    // NUEVO: Método para forzar actualización del estado del cliente
+    public void ForceClientStateUpdate()
+    {
+        Debug.Log($"[Client] Forzando actualización de estado local para jugador {netId}");
+
+        // Resetear referencias de área
+        playerArea = null;
+        enemyArea = null;
+        dropZone = null;
+        playerExtraArea = null;
+        enemyExtraArea = null;
+
+        // Forzar re-búsqueda de áreas
+        var _ = PlayerArea;
+        var __ = EnemyArea;
+        var ___ = DropZone;
+    }
+
+    // NUEVO: Método para habilitar explícitamente el juego de cartas
+    void EnableCardPlay()
+    {
+        Debug.Log($"[Client] Habilitando explícitamente el juego de cartas para jugador {netId}");
+
+        // Buscar todas las cartas del jugador y asegurar que pueden ser clickeadas
+        if (PlayerArea != null)
+        {
+            foreach (Transform child in PlayerArea.transform)
+            {
+                if (child.CompareTag("Card"))
+                {
+                    CardClickHandler handler = child.GetComponent<CardClickHandler>();
+                    if (handler == null)
+                    {
+                        handler = child.gameObject.AddComponent<CardClickHandler>();
+                    }
+
+                    // Asegurar que el handler esté habilitado
+                    handler.enabled = true;
+
+                    Debug.Log($"[Client] Carta {child.name} habilitada para jugar");
+                }
+            }
+        }
+    }
+}
