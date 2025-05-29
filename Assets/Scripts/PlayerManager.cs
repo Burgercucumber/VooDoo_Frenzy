@@ -379,10 +379,18 @@ public class PlayerManager : NetworkBehaviour
             GameObject selectedCard = playerCards[Random.Range(0, playerCards.Count)];
             hasPlayedCard = true;
 
-            Debug.Log($"[Server] Seleccionada carta {selectedCard.name} para jugar automáticamente");
+            // MODIFICACIÓN: Verificar si el tiempo ya llegó a cero
+            RoundManager roundManager = GameObject.FindObjectOfType<RoundManager>();
+            bool timeIsUp = roundManager != null && (roundManager.GetTimeRemaining() <= 0f || roundManager.IsTimeZero());
 
             // Mover la carta a la zona de juego
             RpcSetCardParent(selectedCard, "DropZone");
+
+            // NUEVO: Si el tiempo ya se agotó, forzar flip para todos los oponentes
+            if (timeIsUp)
+            {
+                RpcForceFlipForAllOpponents(selectedCard);
+            }
 
             // Guardar la referencia de la carta jugada
             NetworkIdentity cardNetId = selectedCard.GetComponent<NetworkIdentity>();
@@ -405,7 +413,17 @@ public class PlayerManager : NetworkBehaviour
         NetworkServer.Spawn(newCard, connectionToClient);
 
         hasPlayedCard = true;
+
+        RoundManager roundManager2 = GameObject.FindObjectOfType<RoundManager>();
+        bool timeIsUp2 = roundManager2 != null && (roundManager2.GetTimeRemaining() <= 0f || roundManager2.IsTimeZero());
+
         RpcSetCardParent(newCard, "DropZone");
+
+        // NUEVO: Si el tiempo ya se agotó, forzar flip para todos los oponentes
+        if (timeIsUp2)
+        {
+            RpcForceFlipForAllOpponents(newCard);
+        }
 
         NetworkIdentity newCardNetId = newCard.GetComponent<NetworkIdentity>();
         currentPlayedCardNetId = newCardNetId.netId;
@@ -416,6 +434,31 @@ public class PlayerManager : NetworkBehaviour
         if (gmFallback != null)
         {
             gmFallback.UpdateTurnsPlayed();
+        }
+    }
+
+    // NUEVO: Método específico para hacer flip a todos los oponentes cuando se juega carta automática
+    [ClientRpc]
+    void RpcForceFlipForAllOpponents(GameObject card)
+    {
+        if (card == null) return;
+
+        NetworkIdentity cardNetId = card.GetComponent<NetworkIdentity>();
+        if (cardNetId == null) return;
+
+        // Solo hacer flip si NO es mi carta (soy oponente del dueño de la carta)
+        if (!cardNetId.isOwned)
+        {
+            CardFlipper flipper = card.GetComponent<CardFlipper>();
+            if (flipper != null)
+            {
+                flipper.Flip();
+                Debug.Log($"[Client] Flip forzado aplicado a carta automática del oponente {card.name}");
+            }
+        }
+        else
+        {
+            Debug.Log($"[Client] No se aplica flip a mi propia carta automática {card.name}");
         }
     }
 
@@ -476,19 +519,27 @@ public class PlayerManager : NetworkBehaviour
             case "DropZone":
                 card.transform.SetParent(DropZone.transform, false);
 
-                // MODIFICADO: Solo mostrar la carta si no es del jugador actual Y si el tiempo no ha llegado a cero
+                // MODIFICACIÓN: Solo aplicar flip si no es mi carta Y no es una jugada automática
+                // (las automáticas se manejan por separado con RpcForceFlipForAllOpponents)
                 if (!isOwned)
                 {
-                    // Buscar el RoundManager para verificar si el tiempo llegó a cero
+                    // Buscar el RoundManager para verificar el estado del tiempo
                     RoundManager roundManager = GameObject.FindObjectOfType<RoundManager>();
                     bool shouldFlipNow = false;
 
                     if (roundManager != null)
                     {
-                        // Si el tiempo llegó a cero, hacer flip inmediatamente
-                        if (roundManager.GetTimeRemaining() <= 0f)
+                        // MEJORADO: Solo hacer flip si el tiempo NO se agotó (jugada manual)
+                        // Si el tiempo se agotó, el flip se maneja en RpcForceFlipForAllOpponents
+                        if (roundManager.GetTimeRemaining() > 0f && !roundManager.IsTimeZero())
                         {
-                            shouldFlipNow = true;
+                            shouldFlipNow = false; // Mantener oculta la carta del oponente en jugada manual
+                            Debug.Log($"[Client] Carta del oponente {card.name} colocada manualmente - mantener oculta");
+                        }
+                        else
+                        {
+                            // El tiempo se agotó, pero el flip se maneja en otro método
+                            Debug.Log($"[Client] Carta del oponente {card.name} - flip se manejará por tiempo agotado");
                         }
                     }
 
@@ -497,14 +548,15 @@ public class PlayerManager : NetworkBehaviour
                         CardFlipper flipper = card.GetComponent<CardFlipper>();
                         if (flipper != null)
                         {
-                            flipper.Flip(); // Mostrar la carta porque el tiempo llegó a cero
-                            Debug.Log($"[Client] Carta {card.name} mostrada porque el tiempo llegó a cero");
+                            flipper.Flip();
+                            Debug.Log($"[Client] Carta {card.name} mostrada por tiempo agotado");
                         }
                     }
                 }
                 break;
         }
-        // En PlayerManager.cs, dentro de RpcSetCardParent
+
+        // Asegurar que tenga el componente CardClickHandler
         CardClickHandler clickHandler = card.GetComponent<CardClickHandler>();
         if (clickHandler == null)
         {
@@ -900,4 +952,27 @@ public class PlayerManager : NetworkBehaviour
             }
         }
     }
+
+    [ClientRpc]
+    void RpcForceFlipOpponentCard(GameObject card)
+    {
+        if (card == null) return;
+
+        // Solo hacer flip si NO es mi carta
+        NetworkIdentity cardNetId = card.GetComponent<NetworkIdentity>();
+        if (cardNetId != null && !cardNetId.isOwned)
+        {
+            CardFlipper flipper = card.GetComponent<CardFlipper>();
+            if (flipper != null)
+            {
+                flipper.Flip();
+                Debug.Log($"[Client] Flip forzado aplicado a carta del oponente {card.name}");
+            }
+        }
+        else
+        {
+            Debug.Log($"[Client] No se aplica flip forzado a carta propia {card.name}");
+        }
+    }
+
 }

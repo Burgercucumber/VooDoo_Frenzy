@@ -483,4 +483,10 @@ public class RoundManager : NetworkBehaviour
             Debug.Log("[Server] Rondas detenidas debido a victoria del juego");
         }
     }
+
+    public bool IsTimeZero()
+    {
+        return timeIsZero;
+    }
+
 }
