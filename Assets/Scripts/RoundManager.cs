@@ -65,6 +65,7 @@ public class RoundManager : NetworkBehaviour
         isRoundActive = false;
         currentRound = 0;
         timeRemaining = 0f;
+        timeIsZero = false;
         lastLogTime = 0f;
 
         // Parar cualquier corrutina en ejecución
@@ -111,7 +112,6 @@ public class RoundManager : NetworkBehaviour
         return timeRemaining;
     }
 
-    // Método para iniciar el juego cuando todos los jugadores estén listos
     [Server]
     public void StartGame()
     {
@@ -150,8 +150,6 @@ public class RoundManager : NetworkBehaviour
     {
         Debug.Log("[Client] ¡El juego ha comenzado oficialmente!");
     }
-
-    // Modifica tu método StartRound() en RoundManager para incluir esta verificación al inicio:
 
     [Server]
     void StartRound()
@@ -247,8 +245,6 @@ public class RoundManager : NetworkBehaviour
         StartCoroutine(ProcessPlayedCards());
     }
 
-    // NUEVO: RPC para notificar cuando el tiempo llega a cero
-    // NUEVO: RPC para notificar cuando el tiempo llega a cero - CORREGIDO
     [ClientRpc]
     void RpcNotifyTimeZero()
     {
@@ -299,7 +295,14 @@ public class RoundManager : NetworkBehaviour
     {
         Debug.Log("[Server] Procesando cartas jugadas y preparando nueva ronda...");
 
-        // Esperar un momento para que todas las acciones de juego se completen
+        // NUEVO: Esperar a que terminen las animaciones de batalla antes de continuar
+        if (gameStarted && SimpleBattleAnimator.Instance != null)
+        {
+            Debug.Log("[Server] Esperando a que terminen las animaciones de batalla...");
+            yield return StartCoroutine(WaitForBattleAnimationsToComplete());
+        }
+
+        // Esperar un momento adicional para que todas las acciones se completen
         yield return new WaitForSeconds(1f);
 
         // Eliminar las cartas jugadas de todos los jugadores
@@ -329,6 +332,20 @@ public class RoundManager : NetworkBehaviour
 
         // Iniciar nueva ronda
         StartRound();
+    }
+
+    // NUEVO: Corrutina para esperar a que terminen las animaciones de batalla
+    [Server]
+    IEnumerator WaitForBattleAnimationsToComplete()
+    {
+        if (SimpleBattleAnimator.Instance == null)
+        {
+            Debug.LogWarning("[Server] SimpleBattleAnimator.Instance es null");
+            yield break;
+        }
+
+        // Usar el método del SimpleBattleAnimator para esperar apropiadamente
+        yield return StartCoroutine(SimpleBattleAnimator.Instance.WaitForBattleAnimationsToComplete());
     }
 
     // Añadido con animaciones simples
@@ -391,7 +408,6 @@ public class RoundManager : NetworkBehaviour
                 break;
         }
 
-        // CORREGIDO: Solo reproducir animaciones si el juego ha comenzado oficialmente
         if (gameStarted && SimpleBattleAnimator.Instance != null)
         {
             SimpleBattleAnimator.Instance.PlayBattleAnimations(winnerElement, result);

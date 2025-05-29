@@ -316,7 +316,7 @@ public class VictoryDisplayManager : NetworkBehaviour
         }
 
         // Configurar espaciado
-        float horizontalSpacing = 60f; // Espaciado horizontal entre columnas (colores)
+        float horizontalSpacing = 60f; // Espaciado horizontal entre insignias
         float verticalSpacing = 80f;   // Espaciado vertical entre filas (elementos)
 
         int currentRow = 0;
@@ -342,31 +342,31 @@ public class VictoryDisplayManager : NetworkBehaviour
 
             int currentCol = 0;
 
-            // Posicionar por columnas (colores)
+            // Posicionar por colores horizontalmente
             foreach (var color in colorOrder)
             {
                 var colorBadges = colorGroups[color];
 
-                // Si hay múltiples insignias del mismo color, las ponemos en columna
+                // Posicionar múltiples insignias del mismo color horizontalmente
                 for (int i = 0; i < colorBadges.Count; i++)
                 {
                     VictoryBadge badge = colorBadges[i];
 
                     Vector3 position = new Vector3(
-                        currentCol * horizontalSpacing,
-                        -(currentRow + i) * verticalSpacing,
+                        (currentCol + i) * horizontalSpacing, // Posición horizontal para insignias del mismo color
+                        -currentRow * verticalSpacing,        // Misma fila para insignias del mismo color
                         0
                     );
 
                     badge.transform.localPosition = position;
                 }
 
-                currentCol++;
+                // Avanzar las columnas según la cantidad de insignias de este color
+                currentCol += colorBadges.Count;
             }
 
-            // Avanzar a la siguiente fila, considerando la altura máxima de las columnas
-            int maxBadgesInElement = colorGroups.Values.Max(list => list.Count);
-            currentRow += maxBadgesInElement;
+            // Avanzar a la siguiente fila
+            currentRow++;
         }
 
         // Centrar toda la disposición

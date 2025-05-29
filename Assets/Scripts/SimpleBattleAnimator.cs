@@ -25,6 +25,8 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
     [Header("Configuración de Timing")]
     [SerializeField] private float waitingToAttackDelay = 1.5f;
+    [SerializeField] private float attackAnimationDuration = 3f; // Duración estimada de animaciones de ataque
+    [SerializeField] private float animationBuffer = 1f; // Buffer adicional
 
     private static SimpleBattleAnimator instance;
     public static SimpleBattleAnimator Instance => instance;
@@ -33,8 +35,15 @@ public class SimpleBattleAnimator : NetworkBehaviour
     private GameObject currentWaitingAnimation;
     private bool isWaitingForBattle = false;
 
+    // Control de estado de animaciones de batalla
+    [SyncVar] private bool isBattleAnimationPlaying = false;
+
     // Variable para controlar si el juego ha comenzado oficialmente
     [SyncVar] private bool gameHasStarted = false;
+
+    // Propiedades públicas para que RoundManager pueda consultar el estado
+    public bool IsBattleAnimationPlaying => isBattleAnimationPlaying;
+    public float TotalBattleAnimationTime => waitingToAttackDelay + attackAnimationDuration + animationBuffer;
 
     private void Awake()
     {
@@ -52,9 +61,6 @@ public class SimpleBattleAnimator : NetworkBehaviour
     {
         ValidatePrefabs();
         SetupAnimationCanvas();
-
-        // NO iniciar animación automáticamente aquí
-        // Esperar a que el juego comience oficialmente
     }
 
     private void SetupAnimationCanvas()
@@ -126,9 +132,6 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
     #region Reset System
 
-    /// <summary>
-    /// Resetea el SimpleBattleAnimator al estado inicial cuando se reinicia la partida
-    /// </summary>
     [Server]
     public void ResetToInitialState()
     {
@@ -141,6 +144,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
         // Resetear estado de juego
         gameHasStarted = false;
+        isBattleAnimationPlaying = false;
 
         // Resetear variables de control de animación
         isWaitingForBattle = false;
@@ -159,9 +163,6 @@ public class SimpleBattleAnimator : NetworkBehaviour
         Debug.Log("[Server] SimpleBattleAnimator reseteado correctamente al estado inicial");
     }
 
-    /// <summary>
-    /// RPC para resetear el estado del animator en todos los clientes
-    /// </summary>
     [ClientRpc]
     private void RpcResetAnimatorState()
     {
@@ -187,9 +188,6 @@ public class SimpleBattleAnimator : NetworkBehaviour
         Debug.Log("[Client] Estado del animator reseteado en cliente");
     }
 
-    /// <summary>
-    /// Limpia cualquier objeto de animación residual en el panel
-    /// </summary>
     private void CleanupAnimationPanel()
     {
         if (animationPanel == null) return;
@@ -218,9 +216,6 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
     #region Game State Management
 
-    /// <summary>
-    /// Método para marcar que el juego ha comenzado (versión mejorada)
-    /// </summary>
     [Server]
     public void SetGameStarted()
     {
@@ -233,6 +228,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
         }
 
         isWaitingForBattle = false;
+        isBattleAnimationPlaying = false;
         gameHasStarted = true;
         Debug.Log("[Server] Juego marcado como iniciado para animaciones");
     }
@@ -241,9 +237,6 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
     #region Waiting Animation System
 
-    /// <summary>
-    /// Inicia la animación de espera (versión mejorada)
-    /// </summary>
     [Server]
     public void StartWaitingAnimation()
     {
@@ -268,14 +261,11 @@ public class SimpleBattleAnimator : NetworkBehaviour
         RpcStartWaitingAnimation();
     }
 
-    /// <summary>
-    /// Corrutina helper para reiniciar animación de espera con delay
-    /// </summary>
     [Server]
     private IEnumerator DelayedStartWaiting()
     {
         yield return null; // Esperar un frame
-        if (gameHasStarted && !isWaitingForBattle)
+        if (gameHasStarted && !isWaitingForBattle && !isBattleAnimationPlaying)
         {
             RpcStartWaitingAnimation();
         }
@@ -312,9 +302,6 @@ public class SimpleBattleAnimator : NetworkBehaviour
         yield return null;
     }
 
-    /// <summary>
-    /// Método para detener inmediatamente sin RPC (uso interno) - versión mejorada
-    /// </summary>
     private void StopWaitingAnimationImmediate()
     {
         if (currentWaitingAnimation != null)
@@ -325,16 +312,16 @@ public class SimpleBattleAnimator : NetworkBehaviour
         }
         isWaitingForBattle = false;
 
-        // Verificación adicional para asegurar limpieza completa
+        // Verificación adicional MÁS AGRESIVA para asegurar limpieza completa
         if (animationPanel != null)
         {
-            // Buscar cualquier objeto con nombre que contenga "Draw" que pueda ser una animación de espera residual
+            // Buscar y destruir TODAS las animaciones que puedan estar corriendo
             for (int i = animationPanel.childCount - 1; i >= 0; i--)
             {
                 Transform child = animationPanel.GetChild(i);
-                if (child.name.Contains("Draw") && child.name.Contains("(Clone)"))
+                if (child.name.Contains("Draw") || child.name.Contains("Empate"))
                 {
-                    Debug.Log($"[Client] Limpiando animación de espera residual: {child.name}");
+                    Debug.Log($"[Client] Limpiando animación residual: {child.name}");
                     Destroy(child.gameObject);
                 }
             }
@@ -364,8 +351,9 @@ public class SimpleBattleAnimator : NetworkBehaviour
     {
         Debug.Log($"[Server] Iniciando animaciones de batalla. Elemento ganador: {winnerElement}, Resultado: {result}");
 
-        // NO detenemos la animación de espera aquí inmediatamente
-        // Se detendrá cuando realmente comience la animación de ataque
+        // Marcar que las animaciones de batalla están reproduciéndose
+        isBattleAnimationPlaying = true;
+
         RpcPlayBattleAnimations(winnerElement, result);
     }
 
@@ -389,33 +377,49 @@ public class SimpleBattleAnimator : NetworkBehaviour
         // Asegurar que el canvas esté configurado
         SetupAnimationCanvas();
 
-        // MANTENER la animación de espera por un tiempo antes de mostrar el ataque
-        Debug.Log($"[Client] Manteniendo animación de espera por {waitingToAttackDelay} segundos antes del ataque...");
+        // MANTENER la animación de espera por un tiempo
+        Debug.Log($"[Client] Manteniendo animación de espera por {waitingToAttackDelay} segundos...");
         yield return new WaitForSeconds(waitingToAttackDelay);
 
-        // AHORA sí detener la animación de espera
-        Debug.Log("[Client] Deteniendo animación de espera para mostrar resultado de batalla");
-        StopWaitingAnimationImmediate();
+        // LIMPIEZA AGRESIVA: Destruir TODO lo que hay en el panel
+        Debug.Log("[Client] LIMPIEZA TOTAL del panel de animación");
+        if (animationPanel != null)
+        {
+            for (int i = animationPanel.childCount - 1; i >= 0; i--)
+            {
+                Transform child = animationPanel.GetChild(i);
+                Debug.Log($"[Client] Destruyendo objeto en panel: {child.name}");
+                Destroy(child.gameObject);
+            }
+        }
 
-        // Mostrar animación de ataque del ganador
+        // Resetear variables de control
+        currentWaitingAnimation = null;
+        isWaitingForBattle = false;
+
+        // Esperar varios frames para asegurar que Unity procesó las destrucciones
+        yield return new WaitForFixedUpdate();
+        yield return new WaitForFixedUpdate();
+        yield return new WaitForFixedUpdate();
+
+        Debug.Log($"[Client] Panel limpiado. Objetos restantes: {animationPanel.childCount}");
+
+        // AHORA crear la animación de ataque o resultado
         if (result != CardBattleLogic.BattleResult.Draw)
         {
-            Debug.Log($"[Client] Reproduciendo animación de ataque para elemento: {winnerElement}");
+            Debug.Log($"[Client] Creando animación de ataque para elemento: {winnerElement}");
             GameObject attackPrefab = GetAttackPrefab(winnerElement);
 
             if (attackPrefab != null)
             {
                 GameObject attackInstance = Instantiate(attackPrefab, animationPanel);
-                Debug.Log($"[Client] Animación de ataque instanciada: {attackInstance.name}");
+                Debug.Log($"[Client] Animación de ataque creada: {attackInstance.name}");
 
+                // Esperar a que termine la animación usando el método mejorado
                 yield return StartCoroutine(WaitForAnimation(attackInstance));
 
-                Debug.Log("[Client] Animación de ataque completada, destruyendo objeto...");
+                Debug.Log("[Client] Destruyendo animación de ataque");
                 Destroy(attackInstance);
-            }
-            else
-            {
-                Debug.LogWarning($"[Client] No se encontró prefab de ataque para elemento: {winnerElement}");
             }
         }
         else
@@ -437,6 +441,13 @@ public class SimpleBattleAnimator : NetworkBehaviour
         }
 
         Debug.Log("[Client] Secuencia de animación de batalla completada.");
+
+        // Si es el servidor, marcar que las animaciones han terminado
+        if (isServer)
+        {
+            isBattleAnimationPlaying = false;
+            Debug.Log("[Server] Animaciones de batalla marcadas como completadas");
+        }
     }
 
     private GameObject GetAttackPrefab(CardData.ElementType elementType)
@@ -494,6 +505,23 @@ public class SimpleBattleAnimator : NetworkBehaviour
         }
 
         return prefab;
+    }
+
+    // Método público para que RoundManager espere a que terminen las animaciones
+    [Server]
+    public IEnumerator WaitForBattleAnimationsToComplete()
+    {
+        Debug.Log("[Server] Esperando a que terminen las animaciones de batalla...");
+
+        while (isBattleAnimationPlaying)
+        {
+            yield return new WaitForSeconds(0.1f); // Comprobar cada 0.1 segundos
+        }
+
+        // Buffer adicional para asegurar que todo se ha completado
+        yield return new WaitForSeconds(animationBuffer);
+
+        Debug.Log("[Server] Todas las animaciones de batalla han terminado");
     }
 
     #endregion
@@ -591,14 +619,14 @@ public class SimpleBattleAnimator : NetworkBehaviour
             }
             else
             {
-                Debug.LogWarning("[Client] Duración inválida, usando tiempo por defecto");
-                yield return new WaitForSeconds(2f);
+                Debug.LogWarning("[Client] Duración inválida, usando tiempo configurado");
+                yield return new WaitForSeconds(attackAnimationDuration);
             }
         }
         else
         {
-            Debug.LogWarning("[Client] No se encontró Animator válido, usando tiempo por defecto");
-            yield return new WaitForSeconds(2f);
+            Debug.LogWarning("[Client] No se encontró Animator válido, usando tiempo configurado");
+            yield return new WaitForSeconds(attackAnimationDuration);
         }
 
         Debug.Log($"[Client] Animación completada para: {animObject.name}");
@@ -630,9 +658,6 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
     #region Debug and Testing Methods
 
-    /// <summary>
-    /// Método de utilidad para verificar el estado del animator
-    /// </summary>
     [ContextMenu("Debug Animator State")]
     public void DebugAnimatorState()
     {
@@ -641,6 +666,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
         Debug.Log("=== ANIMATOR STATE DEBUG ===");
         Debug.Log($"Game Started: {gameHasStarted}");
         Debug.Log($"Is Waiting for Battle: {isWaitingForBattle}");
+        Debug.Log($"Is Battle Animation Playing: {isBattleAnimationPlaying}");
         Debug.Log($"Current Waiting Animation: {(currentWaitingAnimation != null ? currentWaitingAnimation.name : "null")}");
         Debug.Log($"Animation Panel Children: {(animationPanel != null ? animationPanel.childCount : 0)}");
 
@@ -655,9 +681,6 @@ public class SimpleBattleAnimator : NetworkBehaviour
         Debug.Log("=== END DEBUG ===");
     }
 
-    /// <summary>
-    /// Método de utilidad para forzar limpieza completa (útil para debugging)
-    /// </summary>
     [ContextMenu("Force Complete Reset")]
     public void ForceCompleteReset()
     {
