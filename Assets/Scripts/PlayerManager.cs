@@ -36,6 +36,35 @@ public class PlayerManager : NetworkBehaviour
     public GameObject TelaV3;
     public GameObject TelaV4;
 
+    public GameObject AlfilerM1;
+    public GameObject AlfilerM2;
+    public GameObject AlfilerM3;
+    public GameObject AlfilerM4;
+
+    public GameObject AlfilerR1;
+    public GameObject AlfilerR2;
+    public GameObject AlfilerR3;
+    public GameObject AlfilerR4;
+
+    public GameObject AlfilerV1;
+    public GameObject AlfilerV2;
+    public GameObject AlfilerV3;
+    public GameObject AlfilerV4;
+
+    public GameObject AlgodonM1;
+    public GameObject AlgodonM2;
+    public GameObject AlgodonM3;
+    public GameObject AlgodonM4;
+
+    public GameObject AlgodonR1;
+    public GameObject AlgodonR2;
+    public GameObject AlgodonR3;
+    public GameObject AlgodonR4;
+
+    public GameObject AlgodonV1;
+    public GameObject AlgodonV2;
+    public GameObject AlgodonV3;
+    public GameObject AlgodonV4;
 
     public GameObject Auxiliar;
     public GameObject Auxiliar1;
@@ -140,6 +169,36 @@ public class PlayerManager : NetworkBehaviour
         cards.Add(TelaV2);
         cards.Add(TelaV3);
         cards.Add(TelaV4);
+
+        cards.Add(AlfilerM1);
+        cards.Add(AlfilerM2);
+        cards.Add(AlfilerM3);
+        cards.Add(AlfilerM4);
+
+        cards.Add(AlfilerR1);
+        cards.Add(AlfilerR2);
+        cards.Add(AlfilerR3);
+        cards.Add(AlfilerR4);
+
+        cards.Add(AlfilerV1);
+        cards.Add(AlfilerV2);
+        cards.Add(AlfilerV3);
+        cards.Add(AlfilerV4);
+
+        cards.Add(AlgodonM1);
+        cards.Add(AlgodonM2);
+        cards.Add(AlgodonM3);
+        cards.Add(AlgodonM4);
+
+        cards.Add(AlgodonR1);
+        cards.Add(AlgodonR2);
+        cards.Add(AlgodonR3);
+        cards.Add(AlgodonR4);
+
+        cards.Add(AlgodonV1);
+        cards.Add(AlgodonV2);
+        cards.Add(AlgodonV3);
+        cards.Add(AlgodonV4);
 
         //Auxiliares
         auxiliar.Add(Auxiliar);

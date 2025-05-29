@@ -124,6 +124,30 @@ MonoBehaviour:
   TelaV2: {fileID: 3330925503045198327, guid: 76dc0f5ff4926c646890cf78a51cd63c, type: 3}
   TelaV3: {fileID: 3330925503045198327, guid: c7d630457d8c3654fae7ddcf216b69eb, type: 3}
   TelaV4: {fileID: 3330925503045198327, guid: 9543f1ecfc6c5394da94978b85d2884b, type: 3}
+  AlfilerM1: {fileID: 3330925503045198327, guid: 3ed82376f52fb0443b5a68d58e391b62, type: 3}
+  AlfilerM2: {fileID: 3330925503045198327, guid: 3c4a356561fa4994f9d5d3275ddf5efd, type: 3}
+  AlfilerM3: {fileID: 3330925503045198327, guid: c7d714c6d2bb59843b994415d15c6cb5, type: 3}
+  AlfilerM4: {fileID: 3330925503045198327, guid: 0cff663bc538bf347b5bb4ca025740ec, type: 3}
+  AlfilerR1: {fileID: 3330925503045198327, guid: 74c78e195cf9c9c4aae4151758f0ea54, type: 3}
+  AlfilerR2: {fileID: 3330925503045198327, guid: 51a0e199b2496834ba66949594ad9bba, type: 3}
+  AlfilerR3: {fileID: 3330925503045198327, guid: af7e907187dc3d343ab3c6a5f97de556, type: 3}
+  AlfilerR4: {fileID: 3330925503045198327, guid: 2393166c17f8e2a4c9be9281e033cbbc, type: 3}
+  AlfilerV1: {fileID: 3330925503045198327, guid: 523338cf866c25141997b691cc674df1, type: 3}
+  AlfilerV2: {fileID: 3330925503045198327, guid: ed28841597fe7604a8fe5ba5691592a0, type: 3}
+  AlfilerV3: {fileID: 3330925503045198327, guid: ceebbd19488aa204eb232617e362f4ac, type: 3}
+  AlfilerV4: {fileID: 3330925503045198327, guid: d2e5f914e4fbccc409ed2d0aa0873a3b, type: 3}
+  AlgodonM1: {fileID: 3330925503045198327, guid: e6a7ad9f82728a7498e85543b48a2db7, type: 3}
+  AlgodonM2: {fileID: 3330925503045198327, guid: aa3083d06b1d59442a79d37fed18ad56, type: 3}
+  AlgodonM3: {fileID: 3330925503045198327, guid: 4db2b2895d2d6914c9488cb4efb4bf13, type: 3}
+  AlgodonM4: {fileID: 3330925503045198327, guid: 1de47b8c248823040bb03dd3956b1a8d, type: 3}
+  AlgodonR1: {fileID: 3330925503045198327, guid: c21fdda79aa975b45b1cfd5c13c7ec27, type: 3}
+  AlgodonR2: {fileID: 3330925503045198327, guid: ef5f44a1e1587814bafb31e65716ad23, type: 3}
+  AlgodonR3: {fileID: 3330925503045198327, guid: 3c0cafa5ec52c9d4fa59d58c05b12454, type: 3}
+  AlgodonR4: {fileID: 3330925503045198327, guid: b99de38913dce5c4489172350943db75, type: 3}
+  AlgodonV1: {fileID: 3330925503045198327, guid: 098e934b6674dc445a39a5c185daafe2, type: 3}
+  AlgodonV2: {fileID: 3330925503045198327, guid: a073ac813d5180d4280f57f878440e95, type: 3}
+  AlgodonV3: {fileID: 3330925503045198327, guid: 25ebdfec6c6f9a140b1bd0de1650d65c, type: 3}
+  AlgodonV4: {fileID: 3330925503045198327, guid: 172db1f5fc538934bbe10c714ff043c4, type: 3}
   Auxiliar: {fileID: 3330925503045198327, guid: 96c69677b243e8b489b6791c90473895, type: 3}
   Auxiliar1: {fileID: 3330925503045198327, guid: 204032bcbc6bee34f91f11458fc4c3b6, type: 3}
   Auxiliar2: {fileID: 3330925503045198327, guid: 59dd9c41d02b26d4abd3e1d3c6aad526, type: 3}

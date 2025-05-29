@@ -20,16 +20,21 @@ public class SimpleBattleAnimator : NetworkBehaviour
     [SerializeField] private Transform animationPanel;
 
     [Header("Configuración de Renderizado")]
-    [SerializeField] private Canvas animationCanvas; // Canvas específico para animaciones
-    [SerializeField] private int canvasSortingOrder = 1000; // Muy alto para estar encima
-    [SerializeField] private bool useWorldSpaceCanvas = false;
+    [SerializeField] private Canvas animationCanvas;
+    [SerializeField] private int canvasSortingOrder = 1000;
 
-    [Header("Configuración de Tamaño")]
-    [SerializeField] private Vector2 animationSize = new Vector2(300, 300); // Tamaño de las animaciones
-    [SerializeField] private float scaleMultiplier = 1f; // Multiplicador de escala adicional
+    [Header("Configuración de Timing")]
+    [SerializeField] private float waitingToAttackDelay = 1.5f;
 
     private static SimpleBattleAnimator instance;
     public static SimpleBattleAnimator Instance => instance;
+
+    // Control de animación de espera
+    private GameObject currentWaitingAnimation;
+    private bool isWaitingForBattle = false;
+
+    // Variable para controlar si el juego ha comenzado oficialmente
+    [SyncVar] private bool gameHasStarted = false;
 
     private void Awake()
     {
@@ -47,6 +52,9 @@ public class SimpleBattleAnimator : NetworkBehaviour
     {
         ValidatePrefabs();
         SetupAnimationCanvas();
+
+        // NO iniciar animación automáticamente aquí
+        // Esperar a que el juego comience oficialmente
     }
 
     private void SetupAnimationCanvas()
@@ -92,18 +100,8 @@ public class SimpleBattleAnimator : NetworkBehaviour
         // Configurar canvas para animaciones
         if (animationCanvas != null)
         {
-            if (useWorldSpaceCanvas)
-            {
-                animationCanvas.renderMode = RenderMode.WorldSpace;
-                animationCanvas.worldCamera = Camera.main;
-            }
-            else
-            {
-                animationCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            }
-
+            animationCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
             animationCanvas.sortingOrder = canvasSortingOrder;
-
             Debug.Log($"[SimpleBattleAnimator] Canvas configurado: {animationCanvas.renderMode}, SortingOrder: {animationCanvas.sortingOrder}");
         }
     }
@@ -126,48 +124,137 @@ public class SimpleBattleAnimator : NetworkBehaviour
         Debug.Log("[SimpleBattleAnimator] Validación de prefabs completada.");
     }
 
+    // NUEVO: Método para marcar que el juego ha comenzado
     [Server]
-    public void PlayBattleAnimations(CardData.ElementType winnerElement, CardBattleLogic.BattleResult result)
+    public void SetGameStarted()
     {
-        Debug.Log($"[Server] Iniciando animaciones de batalla. Elemento ganador: {winnerElement}, Resultado: {result}");
-        RpcPlayBattleAnimations(winnerElement, result);
+        gameHasStarted = true;
+        Debug.Log("[Server] Juego marcado como iniciado para animaciones");
+    }
+
+    [Server]
+    public void StartWaitingAnimation()
+    {
+        // Solo iniciar si el juego realmente ha comenzado
+        if (!gameHasStarted)
+        {
+            Debug.Log("[Server] Juego no ha comenzado oficialmente, saltando animación de espera");
+            return;
+        }
+
+        Debug.Log("[Server] Iniciando animación de espera");
+        RpcStartWaitingAnimation();
     }
 
     [ClientRpc]
-    private void RpcPlayBattleAnimations(CardData.ElementType winnerElement, CardBattleLogic.BattleResult result)
+    private void RpcStartWaitingAnimation()
     {
-        //Debug.Log($"[Client] Recibido RPC para animaciones. Elemento: {winnerElement}, Resultado: {result}");
-        StartCoroutine(PlayAnimationSequence(winnerElement, result));
+        Debug.Log("[Client] Recibido RPC para iniciar animación de espera");
+        StartCoroutine(PlayWaitingAnimation());
     }
 
-    private IEnumerator PlayAnimationSequence(CardData.ElementType winnerElement, CardBattleLogic.BattleResult result)
+    private IEnumerator PlayWaitingAnimation()
     {
-        //Debug.Log("[Client] Iniciando secuencia de animación...");
-
-        if (animationPanel == null)
+        if (animationPanel == null || drawPrefab == null)
         {
-            //Debug.LogError("[Client] animationPanel es null! No se pueden reproducir animaciones.");
+            Debug.LogError("[Client] No se puede iniciar animación de espera - componentes faltantes");
             yield break;
         }
 
         // Asegurar que el canvas esté configurado
         SetupAnimationCanvas();
 
-        // 1. Primero mostrar animación de ataque (si hay ganador)
+        // Detener cualquier animación de espera anterior ANTES de crear una nueva
+        StopWaitingAnimationImmediate();
+
+        // Crear la animación de espera (loop)
+        currentWaitingAnimation = Instantiate(drawPrefab, animationPanel);
+        isWaitingForBattle = true;
+
+        Debug.Log($"[Client] Animación de espera iniciada: {currentWaitingAnimation.name}");
+
+        // La animación de espera continuará hasta que se detenga explícitamente
+        yield return null;
+    }
+
+    // Método para detener inmediatamente sin RPC (uso interno)
+    private void StopWaitingAnimationImmediate()
+    {
+        if (currentWaitingAnimation != null)
+        {
+            Debug.Log($"[Client] Destruyendo animación de espera anterior: {currentWaitingAnimation.name}");
+            Destroy(currentWaitingAnimation);
+            currentWaitingAnimation = null;
+        }
+        isWaitingForBattle = false;
+    }
+
+    [Server]
+    public void StopWaitingAnimation()
+    {
+        Debug.Log("[Server] Deteniendo animación de espera");
+        RpcStopWaitingAnimation();
+    }
+
+    [ClientRpc]
+    private void RpcStopWaitingAnimation()
+    {
+        Debug.Log("[Client] Recibido RPC para detener animación de espera");
+        StopWaitingAnimationImmediate();
+    }
+
+    [Server]
+    public void PlayBattleAnimations(CardData.ElementType winnerElement, CardBattleLogic.BattleResult result)
+    {
+        Debug.Log($"[Server] Iniciando animaciones de batalla. Elemento ganador: {winnerElement}, Resultado: {result}");
+
+        // NO detenemos la animación de espera aquí inmediatamente
+        // Se detendrá cuando realmente comience la animación de ataque
+        RpcPlayBattleAnimations(winnerElement, result);
+    }
+
+    [ClientRpc]
+    private void RpcPlayBattleAnimations(CardData.ElementType winnerElement, CardBattleLogic.BattleResult result)
+    {
+        Debug.Log($"[Client] Recibido RPC para animaciones. Elemento: {winnerElement}, Resultado: {result}");
+        StartCoroutine(PlayAnimationSequence(winnerElement, result));
+    }
+
+    private IEnumerator PlayAnimationSequence(CardData.ElementType winnerElement, CardBattleLogic.BattleResult result)
+    {
+        Debug.Log("[Client] Iniciando secuencia de animación de batalla...");
+
+        if (animationPanel == null)
+        {
+            Debug.LogError("[Client] animationPanel es null! No se pueden reproducir animaciones.");
+            yield break;
+        }
+
+        // Asegurar que el canvas esté configurado
+        SetupAnimationCanvas();
+
+        // MANTENER la animación de espera por un tiempo antes de mostrar el ataque
+        Debug.Log($"[Client] Manteniendo animación de espera por {waitingToAttackDelay} segundos antes del ataque...");
+        yield return new WaitForSeconds(waitingToAttackDelay);
+
+        // AHORA sí detener la animación de espera
+        Debug.Log("[Client] Deteniendo animación de espera para mostrar resultado de batalla");
+        StopWaitingAnimationImmediate();
+
+        // Mostrar animación de ataque del ganador
         if (result != CardBattleLogic.BattleResult.Draw)
         {
-            //Debug.Log($"[Client] Reproduciendo animación de ataque para elemento: {winnerElement}");
+            Debug.Log($"[Client] Reproduciendo animación de ataque para elemento: {winnerElement}");
             GameObject attackPrefab = GetAttackPrefab(winnerElement);
 
             if (attackPrefab != null)
             {
                 GameObject attackInstance = Instantiate(attackPrefab, animationPanel);
-                ConfigureAnimationObject(attackInstance, "Attack");
+                Debug.Log($"[Client] Animación de ataque instanciada: {attackInstance.name}");
 
-                //Debug.Log($"[Client] Animación de ataque instanciada: {attackInstance.name}");
                 yield return StartCoroutine(WaitForAnimation(attackInstance));
 
-                //Debug.Log("[Client] Animación de ataque completada, destruyendo objeto...");
+                Debug.Log("[Client] Animación de ataque completada, destruyendo objeto...");
                 Destroy(attackInstance);
             }
             else
@@ -175,222 +262,25 @@ public class SimpleBattleAnimator : NetworkBehaviour
                 Debug.LogWarning($"[Client] No se encontró prefab de ataque para elemento: {winnerElement}");
             }
         }
-
-        // 2. Luego mostrar resultado
-        Debug.Log($"[Client] Reproduciendo animación de resultado: {result}");
-        GameObject resultPrefab = GetResultPrefab(result);
-
-        if (resultPrefab != null)
-        {
-            GameObject resultInstance = Instantiate(resultPrefab, animationPanel);
-            ConfigureAnimationObject(resultInstance, "Result");
-
-           // Debug.Log($"[Client] Animación de resultado instanciada: {resultInstance.name}");
-            yield return StartCoroutine(WaitForAnimation(resultInstance));
-
-            //Debug.Log("[Client] Animación de resultado completada, destruyendo objeto...");
-            Destroy(resultInstance);
-        }
         else
         {
-            Debug.LogWarning($"[Client] No se encontró prefab de resultado para: {result}");
-        }
+            // Si es empate, mostrar animación de empate una vez
+            Debug.Log($"[Client] Reproduciendo animación de empate final");
+            GameObject resultPrefab = GetResultPrefab(result);
 
-        Debug.Log("[Client] Secuencia de animación completada.");
-    }
-
-    private void ConfigureAnimationObject(GameObject animObject, string type)
-    {
-        if (animObject == null) return;
-
-        //Debug.Log($"[Client] Configurando objeto de animación: {animObject.name} (Tipo: {type})");
-
-        // Primero determinar si necesitamos convertir a UI o mantener como world object
-        bool isInUICanvas = IsInUICanvas();
-
-        if (isInUICanvas)
-        {
-            ConvertToUIObject(animObject);
-        }
-        else
-        {
-            ConfigureWorldSpaceObject(animObject);
-        }
-
-        // Asegurar visibilidad
-        animObject.SetActive(true);
-
-        // Debug final
-        DebugObjectConfiguration(animObject, type);
-    }
-
-    private bool IsInUICanvas()
-    {
-        if (animationCanvas != null)
-        {
-            return animationCanvas.renderMode == RenderMode.ScreenSpaceOverlay ||
-                   animationCanvas.renderMode == RenderMode.ScreenSpaceCamera;
-        }
-        return true; // Por defecto asumir UI
-    }
-
-    private void ConvertToUIObject(GameObject animObject)
-    {
-        //Debug.Log("[Client] Convirtiendo a objeto UI...");
-
-        // Agregar RectTransform si no existe
-        RectTransform rectTransform = animObject.GetComponent<RectTransform>();
-        if (rectTransform == null)
-        {
-            rectTransform = animObject.AddComponent<RectTransform>();
-        }
-
-        // Configurar RectTransform para centrado con tamaño controlado
-        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        rectTransform.anchoredPosition = Vector2.zero;
-        rectTransform.sizeDelta = animationSize; // Usar tamaño configurable
-        rectTransform.localScale = Vector3.one * scaleMultiplier;
-
-        //Debug.Log($"[Client] RectTransform configurado - Size: {animationSize}, Scale: {scaleMultiplier}");
-
-        // Convertir SpriteRenderers a Image components
-        ConvertSpriteRenderersToImages(animObject);
-    }
-
-    private void ConvertSpriteRenderersToImages(GameObject obj)
-    {
-        SpriteRenderer[] spriteRenderers = obj.GetComponentsInChildren<SpriteRenderer>();
-
-        foreach (SpriteRenderer sr in spriteRenderers)
-        {
-            if (sr.sprite != null)
+            if (resultPrefab != null)
             {
-                //Debug.Log($"[Client] Convirtiendo SpriteRenderer a Image: {sr.name}");
+                GameObject resultInstance = Instantiate(resultPrefab, animationPanel);
+                Debug.Log($"[Client] Animación de empate final instanciada: {resultInstance.name}");
 
-                // Crear Image component
-                Image image = sr.gameObject.AddComponent<Image>();
-                image.sprite = sr.sprite;
-                image.color = sr.color;
-                image.preserveAspect = true;
-                image.type = Image.Type.Simple; // Asegurar tipo simple
+                yield return StartCoroutine(WaitForAnimation(resultInstance));
 
-                // Agregar RectTransform si no existe
-                RectTransform rt = sr.GetComponent<RectTransform>();
-                if (rt == null)
-                {
-                    rt = sr.gameObject.AddComponent<RectTransform>();
-                }
-
-                // Configurar RectTransform basado en el sprite original
-                rt.anchorMin = new Vector2(0.5f, 0.5f);
-                rt.anchorMax = new Vector2(0.5f, 0.5f);
-
-                // Calcular tamaño apropiado basado en el sprite
-                Vector2 spriteSize = sr.sprite.bounds.size;
-                Vector2 pixelsPerUnit = Vector2.one * sr.sprite.pixelsPerUnit;
-                Vector2 targetSize = new Vector2(
-                    spriteSize.x * pixelsPerUnit.x,
-                    spriteSize.y * pixelsPerUnit.y
-                );
-
-                // Escalar al tamaño de animación manteniendo proporción
-                float maxDimension = Mathf.Max(targetSize.x, targetSize.y);
-                float maxAnimSize = Mathf.Max(animationSize.x, animationSize.y);
-                float scaleFactor = maxAnimSize / maxDimension;
-
-                rt.sizeDelta = targetSize * scaleFactor * scaleMultiplier;
-                rt.anchoredPosition = Vector2.zero;
-                rt.localScale = Vector3.one;
-
-                //Debug.Log($"[Client] Image configurada - OriginalSize: {targetSize}, FinalSize: {rt.sizeDelta}");
-
-                // Remover SpriteRenderer
-                DestroyImmediate(sr);
-            }
-        }
-    }
-
-    private void ConfigureWorldSpaceObject(GameObject animObject)
-    {
-        //Debug.Log("[Client] Configurando como objeto World Space...");
-
-        // Posicionar frente a la cámara
-        Camera targetCamera = Camera.main;
-        if (targetCamera != null)
-        {
-            Vector3 cameraForward = targetCamera.transform.forward;
-            Vector3 position = targetCamera.transform.position + cameraForward * 5f;
-            animObject.transform.position = position;
-            animObject.transform.LookAt(targetCamera.transform);
-        }
-
-        // Configurar renderers para visibilidad
-        ConfigureRenderersForVisibility(animObject);
-    }
-
-    private void ConfigureRenderersForVisibility(GameObject obj)
-    {
-        // Configurar SpriteRenderers
-        SpriteRenderer[] spriteRenderers = obj.GetComponentsInChildren<SpriteRenderer>();
-        foreach (SpriteRenderer sr in spriteRenderers)
-        {
-            sr.sortingOrder = canvasSortingOrder;
-
-            // Asegurar que el material sea visible
-            if (sr.material == null || sr.material.shader.name == "Hidden/InternalErrorShader")
-            {
-                sr.material = new Material(Shader.Find("Sprites/Default"));
+                Debug.Log("[Client] Animación de empate final completada, destruyendo objeto...");
+                Destroy(resultInstance);
             }
         }
 
-        // Configurar MeshRenderers si los hay
-        MeshRenderer[] meshRenderers = obj.GetComponentsInChildren<MeshRenderer>();
-        foreach (MeshRenderer mr in meshRenderers)
-        {
-            if (mr.material.shader.name != "Sprites/Default")
-            {
-                Material newMat = new Material(Shader.Find("Sprites/Default"));
-                if (mr.material.mainTexture != null)
-                    newMat.mainTexture = mr.material.mainTexture;
-                mr.material = newMat;
-            }
-        }
-    }
-
-    private void DebugObjectConfiguration(GameObject obj, string type)
-    {
-        //Debug.Log($"[Client] === DEBUG CONFIGURACIÓN {type.ToUpper()} ===");
-        //Debug.Log($"[Client] Objeto: {obj.name}");
-        //Debug.Log($"[Client] Activo: {obj.activeInHierarchy}");
-        //Debug.Log($"[Client] Parent: {(obj.transform.parent != null ? obj.transform.parent.name : "null")}");
-        //Debug.Log($"[Client] Posición: {obj.transform.position}");
-        //Debug.Log($"[Client] Posición local: {obj.transform.localPosition}");
-        //Debug.Log($"[Client] Escala: {obj.transform.localScale}");
-
-        // Debug de RectTransform si existe
-        RectTransform rt = obj.GetComponent<RectTransform>();
-        if (rt != null)
-        {
-            //Debug.Log($"[Client] RectTransform - AnchoredPos: {rt.anchoredPosition}, SizeDelta: {rt.sizeDelta}");
-        }
-
-        // Debug de componentes de renderizado
-        Image[] images = obj.GetComponentsInChildren<Image>();
-        Debug.Log($"[Client] Images encontradas: {images.Length}");
-        foreach (var img in images)
-        {
-           // Debug.Log($"[Client] - Image: {img.name}, Enabled: {img.enabled}, Sprite: {(img.sprite != null ? img.sprite.name : "null")}, Color: {img.color}");
-        }
-
-        SpriteRenderer[] spriteRenderers = obj.GetComponentsInChildren<SpriteRenderer>();
-        //Debug.Log($"[Client] SpriteRenderers encontrados: {spriteRenderers.Length}");
-        foreach (var sr in spriteRenderers)
-        {
-            Debug.Log($"[Client] - SpriteRenderer: {sr.name}, Enabled: {sr.enabled}, Sprite: {(sr.sprite != null ? sr.sprite.name : "null")}, SortingOrder: {sr.sortingOrder}, Color: {sr.color}");
-        }
-
-        //Debug.Log($"[Client] === FIN DEBUG CONFIGURACIÓN ===");
+        Debug.Log("[Client] Secuencia de animación de batalla completada.");
     }
 
     private GameObject GetAttackPrefab(CardData.ElementType elementType)
@@ -444,7 +334,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
         if (prefab == null)
         {
-            //Debug.LogError($"[Client] Prefab de resultado para {result} es null!");
+            Debug.LogError($"[Client] Prefab de resultado para {result} es null!");
         }
 
         return prefab;
@@ -453,50 +343,54 @@ public class SimpleBattleAnimator : NetworkBehaviour
     [Server]
     public void ShowVictoryAnimation()
     {
-        //Debug.Log("[Server] Mostrando animación de victoria del juego");
+        Debug.Log("[Server] Mostrando animación de victoria del juego");
         RpcShowVictoryAnimation();
     }
 
     [ClientRpc]
     private void RpcShowVictoryAnimation()
     {
-        //Debug.Log("[Client] Recibido RPC para mostrar animación de victoria");
+        Debug.Log("[Client] Recibido RPC para mostrar animación de victoria");
+
+        // Primero detener cualquier animación de espera
+        StopWaitingAnimationImmediate();
 
         if (victoryPrefab != null && animationPanel != null)
         {
             GameObject victory = Instantiate(victoryPrefab, animationPanel);
-            ConfigureAnimationObject(victory, "GameVictory");
-            //Debug.Log($"[Client] Animación de victoria del juego instanciada: {victory.name}");
+            Debug.Log($"[Client] Animación de victoria del juego instanciada: {victory.name}");
             StartCoroutine(DestroyAfterAnimation(victory));
         }
         else
         {
-            //Debug.LogError("[Client] No se puede mostrar animación de victoria - prefab o panel faltante");
+            Debug.LogError("[Client] No se puede mostrar animación de victoria - prefab o panel faltante");
         }
     }
 
     [Server]
     public void ShowDrawAnimation()
     {
-        //Debug.Log("[Server] Mostrando animación de empate del juego");
+        Debug.Log("[Server] Mostrando animación de empate del juego");
         RpcShowDrawAnimation();
     }
 
     [ClientRpc]
     private void RpcShowDrawAnimation()
     {
-        //Debug.Log("[Client] Recibido RPC para mostrar animación de empate");
+        Debug.Log("[Client] Recibido RPC para mostrar animación de empate");
+
+        // Primero detener cualquier animación de espera
+        StopWaitingAnimationImmediate();
 
         if (drawPrefab != null && animationPanel != null)
         {
             GameObject draw = Instantiate(drawPrefab, animationPanel);
-            ConfigureAnimationObject(draw, "GameDraw");
-            //Debug.Log($"[Client] Animación de empate del juego instanciada: {draw.name}");
+            Debug.Log($"[Client] Animación de empate del juego instanciada: {draw.name}");
             StartCoroutine(DestroyAfterAnimation(draw));
         }
         else
         {
-            //Debug.LogError("[Client] No se puede mostrar animación de empate - prefab o panel faltante");
+            Debug.LogError("[Client] No se puede mostrar animación de empate - prefab o panel faltante");
         }
     }
 
@@ -504,21 +398,20 @@ public class SimpleBattleAnimator : NetworkBehaviour
     {
         if (animObject == null)
         {
-            //Debug.LogWarning("[Client] Objeto de animación es null en WaitForAnimation");
+            Debug.LogWarning("[Client] Objeto de animación es null en WaitForAnimation");
             yield break;
         }
 
-        // Debug del objeto
-        //Debug.Log($"[Client] Esperando animación de: {animObject.name}");
+        Debug.Log($"[Client] Esperando animación de: {animObject.name}");
 
-        // Buscar Animator
-        Animator animator = animObject.GetComponent<Animator>();
+        // Buscar Animator en el objeto y sus hijos
+        Animator animator = animObject.GetComponentInChildren<Animator>();
 
         if (animator != null && animator.runtimeAnimatorController != null)
         {
-            //Debug.Log($"[Client] Animator encontrado con controller: {animator.runtimeAnimatorController.name}");
+            Debug.Log($"[Client] Animator encontrado con controller: {animator.runtimeAnimatorController.name}");
 
-            // Esperar un frame para que se inicialice
+            // Esperar un frame para que se inicialice la animación
             yield return null;
 
             // Obtener información del estado actual
@@ -529,6 +422,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
             if (animationLength > 0)
             {
+                // Esperar a que termine la animación
                 yield return new WaitForSeconds(animationLength);
             }
             else
@@ -606,39 +500,5 @@ public class SimpleBattleAnimator : NetworkBehaviour
     {
         SetupAnimationCanvas();
         Debug.Log("[SimpleBattleAnimator] Canvas setup forzado completado");
-    }
-
-    [ContextMenu("Test Small Animation")]
-    public void TestSmallAnimation()
-    {
-        if (Application.isPlaying)
-        {
-            // Reducir temporalmente el tamaño para prueba
-            Vector2 originalSize = animationSize;
-            float originalScale = scaleMultiplier;
-
-            animationSize = new Vector2(150, 150);
-            scaleMultiplier = 0.5f;
-
-            if (isServer)
-            {
-                ShowVictoryAnimation();
-            }
-            else
-            {
-                Debug.Log("Solo el servidor puede iniciar animaciones de prueba");
-            }
-
-            // Restaurar valores originales después de un tiempo
-            StartCoroutine(RestoreOriginalSize(originalSize, originalScale));
-        }
-    }
-
-    private IEnumerator RestoreOriginalSize(Vector2 originalSize, float originalScale)
-    {
-        yield return new WaitForSeconds(3f);
-        animationSize = originalSize;
-        scaleMultiplier = originalScale;
-        Debug.Log("[SimpleBattleAnimator] Tamaños restaurados a valores originales");
     }
 }
