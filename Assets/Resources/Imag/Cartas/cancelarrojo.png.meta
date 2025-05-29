@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      cancelarrojo_0: 1555565761762667457
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
