@@ -5,6 +5,8 @@ using Mirror;
 
 public class RoundManager : NetworkBehaviour
 {
+    [SyncVar]
+    private bool timeIsZero = false;
     //
     public PlayerManager player1;
     public PlayerManager player2;
@@ -167,6 +169,9 @@ public class RoundManager : NetworkBehaviour
         currentRound++;
         timeRemaining = roundTime;
         isRoundActive = true;
+        //
+        timeIsZero = false; // NUEVO: Resetear el estado de tiempo cero
+
         Debug.Log($"[Server] Round {currentRound} started with {timeRemaining} seconds.");
 
         // CORREGIDO: Solo iniciar animación de espera si el juego ha comenzado oficialmente
@@ -219,7 +224,11 @@ public class RoundManager : NetworkBehaviour
         if (!isServer) return;
 
         isRoundActive = false;
+        timeIsZero = true; // NUEVO: Marcar que el tiempo llegó a cero
         Debug.Log($"[Server] Round {currentRound} ended.");
+
+        // NUEVO: Notificar que el tiempo llegó a cero para hacer flip a las cartas
+        RpcNotifyTimeZero();
 
         RpcNotifyRoundEnded(currentRound);
 
@@ -230,13 +239,63 @@ public class RoundManager : NetworkBehaviour
             if (player != null && !player.HasPlayedCard)
             {
                 Debug.Log($"[Server] Jugador {player.netId} no jugó. Jugando carta automática...");
-
-                player.PlayRandomCard(); // <- llamada directa en el servidor
+                player.PlayRandomCard();
             }
         }
 
-        ResolveRound();//
+        ResolveRound();
         StartCoroutine(ProcessPlayedCards());
+    }
+
+    // NUEVO: RPC para notificar cuando el tiempo llega a cero
+    [ClientRpc]
+    void RpcNotifyTimeZero()
+    {
+        Debug.Log("[Client] Tiempo llegó a cero - preparando flip de cartas en DropZone");
+
+        // Buscar todas las cartas en el DropZone y hacer flip solo a las del oponente
+        GameObject dropZone = GameObject.Find("Limite");
+        if (dropZone != null)
+        {
+            foreach (Transform child in dropZone.transform)
+            {
+                if (child.CompareTag("Card"))
+                {
+                    NetworkIdentity cardNetId = child.GetComponent<NetworkIdentity>();
+                    if (cardNetId != null)
+                    {
+                        // Solo hacer flip a cartas que NO pertenecen al jugador local
+                        bool isMyCard = false;
+
+                        // Buscar el PlayerManager local para comparar conexiones
+                        PlayerManager[] allPlayers = FindObjectsOfType<PlayerManager>();
+                        foreach (var player in allPlayers)
+                        {
+                            if (player.isLocalPlayer && cardNetId.connectionToClient == player.connectionToClient)
+                            {
+                                isMyCard = true;
+                                break;
+                            }
+                        }
+
+                        // Solo hacer flip si NO es mi carta
+                        if (!isMyCard)
+                        {
+                            CardFlipper flipper = child.GetComponent<CardFlipper>();
+                            if (flipper != null)
+                            {
+                                flipper.Flip();
+                                Debug.Log($"[Client] Flip aplicado a carta del oponente {child.name} en DropZone");
+                            }
+                        }
+                        else
+                        {
+                            Debug.Log($"[Client] Carta propia {child.name} en DropZone - NO se hace flip");
+                        }
+                    }
+                }
+            }
+        }
     }
 
     [ClientRpc]

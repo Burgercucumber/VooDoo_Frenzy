@@ -476,16 +476,41 @@ public class PlayerManager : NetworkBehaviour
             case "DropZone":
                 card.transform.SetParent(DropZone.transform, false);
                 // Siempre mostrar la carta al entrar en el área de juego
+                //if (!isOwned)
+                //{
+                //    CardFlipper flipper = card.GetComponent<CardFlipper>();
+                //    if (flipper != null)
+                //    {
+                //        flipper.Flip(); // Mostrar la carta, no importa su estado anterior
+                //    }
+                //}
+                //break;
                 if (!isOwned)
                 {
-                    CardFlipper flipper = card.GetComponent<CardFlipper>();
-                    if (flipper != null)
+                    // Buscar el RoundManager para verificar si el tiempo llegó a cero
+                    RoundManager roundManager = GameObject.FindObjectOfType<RoundManager>();
+                    bool shouldFlipNow = false;
+
+                    if (roundManager != null)
                     {
-                        flipper.Flip(); // Mostrar la carta, no importa su estado anterior
+                        // Si el tiempo llegó a cero, hacer flip inmediatamente
+                        if (roundManager.GetTimeRemaining() <= 0f)
+                        {
+                            shouldFlipNow = true;
+                        }
+                    }
+
+                    if (shouldFlipNow)
+                    {
+                        CardFlipper flipper = card.GetComponent<CardFlipper>();
+                        if (flipper != null)
+                        {
+                            flipper.Flip(); // Mostrar la carta porque el tiempo llegó a cero
+                            Debug.Log($"[Client] Carta {card.name} mostrada porque el tiempo llegó a cero");
+                        }
                     }
                 }
                 break;
-
         }
         // En PlayerManager.cs, dentro de RpcSetCardParent
         CardClickHandler clickHandler = card.GetComponent<CardClickHandler>();
