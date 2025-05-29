@@ -19,10 +19,10 @@ GameObject:
   - component: {fileID: 3329308164964507233}
   - component: {fileID: 3625159268873858892}
   - component: {fileID: -7491915371428041189}
-  - component: {fileID: 4935831886964816591}
-  - component: {fileID: -8320541983549815443}
-  m_Layer: 9
-  m_Name: Victory TR
+  - component: {fileID: -8569945455048609387}
+  - component: {fileID: 6432304571836106956}
+  m_Layer: 8
+  m_Name: Auxiliar 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,7 +45,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 420, y: -347.53}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 120, y: 177}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5907165286780168086
 CanvasRenderer:
@@ -75,7 +75,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2173314873119998423, guid: edb34bed97f2514408c542bda49b500b, type: 3}
+  m_Sprite: {fileID: 1649277212354015316, guid: 36b2275dbb302a64da019aacb9d30de4, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -190,7 +190,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 100, y: 100}
+  m_Size: {x: 120, y: 177}
   m_EdgeRadius: 0
 --- !u!50 &4368354688134821474
 Rigidbody2D:
@@ -232,7 +232,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneId: 0
-  _assetId: 422856591
+  _assetId: 2319267079
   serverOnly: 0
   visibility: 0
   hasSpawned: 0
@@ -320,7 +320,7 @@ MonoBehaviour:
   syncInterval: 0
   PlayerManager: {fileID: 0}
   NumberOfClicks: 0
---- !u!114 &4935831886964816591
+--- !u!114 &-8569945455048609387
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -329,13 +329,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 3330925503045198327}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dab1ce1fc21f59243898272faa678886, type: 3}
+  m_Script: {fileID: 11500000, guid: ade3deb7090912849a47be63d50cfb9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  element: 2
-  color: 0
-  badgeName: TR
---- !u!114 &-8320541983549815443
+  CardFront: {fileID: 1649277212354015316, guid: 36b2275dbb302a64da019aacb9d30de4, type: 3}
+  CardBack: {fileID: -5540283103886046044, guid: b1d85995cbe89874daf0cd9bf89a9288, type: 3}
+--- !u!114 &6432304571836106956
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -344,6 +343,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 3330925503045198327}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f06f0abb04e7ed04f8cf3e0bf9bcbd2b, type: 3}
+  m_Script: {fileID: 11500000, guid: 1a91a32f60412d94082f3a5b8583e664, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  auxiliaryType: 2
+  cardName: Remover insignia
+  description: Permite eliminar una de las insignias recolectadas del rival

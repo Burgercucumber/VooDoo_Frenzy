@@ -136,17 +136,17 @@ public class SimpleBattleAnimator : NetworkBehaviour
     [ClientRpc]
     private void RpcPlayBattleAnimations(CardData.ElementType winnerElement, CardBattleLogic.BattleResult result)
     {
-        Debug.Log($"[Client] Recibido RPC para animaciones. Elemento: {winnerElement}, Resultado: {result}");
+        //Debug.Log($"[Client] Recibido RPC para animaciones. Elemento: {winnerElement}, Resultado: {result}");
         StartCoroutine(PlayAnimationSequence(winnerElement, result));
     }
 
     private IEnumerator PlayAnimationSequence(CardData.ElementType winnerElement, CardBattleLogic.BattleResult result)
     {
-        Debug.Log("[Client] Iniciando secuencia de animación...");
+        //Debug.Log("[Client] Iniciando secuencia de animación...");
 
         if (animationPanel == null)
         {
-            Debug.LogError("[Client] animationPanel es null! No se pueden reproducir animaciones.");
+            //Debug.LogError("[Client] animationPanel es null! No se pueden reproducir animaciones.");
             yield break;
         }
 
@@ -156,7 +156,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
         // 1. Primero mostrar animación de ataque (si hay ganador)
         if (result != CardBattleLogic.BattleResult.Draw)
         {
-            Debug.Log($"[Client] Reproduciendo animación de ataque para elemento: {winnerElement}");
+            //Debug.Log($"[Client] Reproduciendo animación de ataque para elemento: {winnerElement}");
             GameObject attackPrefab = GetAttackPrefab(winnerElement);
 
             if (attackPrefab != null)
@@ -164,10 +164,10 @@ public class SimpleBattleAnimator : NetworkBehaviour
                 GameObject attackInstance = Instantiate(attackPrefab, animationPanel);
                 ConfigureAnimationObject(attackInstance, "Attack");
 
-                Debug.Log($"[Client] Animación de ataque instanciada: {attackInstance.name}");
+                //Debug.Log($"[Client] Animación de ataque instanciada: {attackInstance.name}");
                 yield return StartCoroutine(WaitForAnimation(attackInstance));
 
-                Debug.Log("[Client] Animación de ataque completada, destruyendo objeto...");
+                //Debug.Log("[Client] Animación de ataque completada, destruyendo objeto...");
                 Destroy(attackInstance);
             }
             else
@@ -185,10 +185,10 @@ public class SimpleBattleAnimator : NetworkBehaviour
             GameObject resultInstance = Instantiate(resultPrefab, animationPanel);
             ConfigureAnimationObject(resultInstance, "Result");
 
-            Debug.Log($"[Client] Animación de resultado instanciada: {resultInstance.name}");
+           // Debug.Log($"[Client] Animación de resultado instanciada: {resultInstance.name}");
             yield return StartCoroutine(WaitForAnimation(resultInstance));
 
-            Debug.Log("[Client] Animación de resultado completada, destruyendo objeto...");
+            //Debug.Log("[Client] Animación de resultado completada, destruyendo objeto...");
             Destroy(resultInstance);
         }
         else
@@ -203,7 +203,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
     {
         if (animObject == null) return;
 
-        Debug.Log($"[Client] Configurando objeto de animación: {animObject.name} (Tipo: {type})");
+        //Debug.Log($"[Client] Configurando objeto de animación: {animObject.name} (Tipo: {type})");
 
         // Primero determinar si necesitamos convertir a UI o mantener como world object
         bool isInUICanvas = IsInUICanvas();
@@ -236,7 +236,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
     private void ConvertToUIObject(GameObject animObject)
     {
-        Debug.Log("[Client] Convirtiendo a objeto UI...");
+        //Debug.Log("[Client] Convirtiendo a objeto UI...");
 
         // Agregar RectTransform si no existe
         RectTransform rectTransform = animObject.GetComponent<RectTransform>();
@@ -252,7 +252,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
         rectTransform.sizeDelta = animationSize; // Usar tamaño configurable
         rectTransform.localScale = Vector3.one * scaleMultiplier;
 
-        Debug.Log($"[Client] RectTransform configurado - Size: {animationSize}, Scale: {scaleMultiplier}");
+        //Debug.Log($"[Client] RectTransform configurado - Size: {animationSize}, Scale: {scaleMultiplier}");
 
         // Convertir SpriteRenderers a Image components
         ConvertSpriteRenderersToImages(animObject);
@@ -266,7 +266,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
         {
             if (sr.sprite != null)
             {
-                Debug.Log($"[Client] Convirtiendo SpriteRenderer a Image: {sr.name}");
+                //Debug.Log($"[Client] Convirtiendo SpriteRenderer a Image: {sr.name}");
 
                 // Crear Image component
                 Image image = sr.gameObject.AddComponent<Image>();
@@ -303,7 +303,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
                 rt.anchoredPosition = Vector2.zero;
                 rt.localScale = Vector3.one;
 
-                Debug.Log($"[Client] Image configurada - OriginalSize: {targetSize}, FinalSize: {rt.sizeDelta}");
+                //Debug.Log($"[Client] Image configurada - OriginalSize: {targetSize}, FinalSize: {rt.sizeDelta}");
 
                 // Remover SpriteRenderer
                 DestroyImmediate(sr);
@@ -313,7 +313,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
     private void ConfigureWorldSpaceObject(GameObject animObject)
     {
-        Debug.Log("[Client] Configurando como objeto World Space...");
+        //Debug.Log("[Client] Configurando como objeto World Space...");
 
         // Posicionar frente a la cámara
         Camera targetCamera = Camera.main;
@@ -360,19 +360,19 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
     private void DebugObjectConfiguration(GameObject obj, string type)
     {
-        Debug.Log($"[Client] === DEBUG CONFIGURACIÓN {type.ToUpper()} ===");
-        Debug.Log($"[Client] Objeto: {obj.name}");
-        Debug.Log($"[Client] Activo: {obj.activeInHierarchy}");
-        Debug.Log($"[Client] Parent: {(obj.transform.parent != null ? obj.transform.parent.name : "null")}");
-        Debug.Log($"[Client] Posición: {obj.transform.position}");
-        Debug.Log($"[Client] Posición local: {obj.transform.localPosition}");
-        Debug.Log($"[Client] Escala: {obj.transform.localScale}");
+        //Debug.Log($"[Client] === DEBUG CONFIGURACIÓN {type.ToUpper()} ===");
+        //Debug.Log($"[Client] Objeto: {obj.name}");
+        //Debug.Log($"[Client] Activo: {obj.activeInHierarchy}");
+        //Debug.Log($"[Client] Parent: {(obj.transform.parent != null ? obj.transform.parent.name : "null")}");
+        //Debug.Log($"[Client] Posición: {obj.transform.position}");
+        //Debug.Log($"[Client] Posición local: {obj.transform.localPosition}");
+        //Debug.Log($"[Client] Escala: {obj.transform.localScale}");
 
         // Debug de RectTransform si existe
         RectTransform rt = obj.GetComponent<RectTransform>();
         if (rt != null)
         {
-            Debug.Log($"[Client] RectTransform - AnchoredPos: {rt.anchoredPosition}, SizeDelta: {rt.sizeDelta}");
+            //Debug.Log($"[Client] RectTransform - AnchoredPos: {rt.anchoredPosition}, SizeDelta: {rt.sizeDelta}");
         }
 
         // Debug de componentes de renderizado
@@ -380,17 +380,17 @@ public class SimpleBattleAnimator : NetworkBehaviour
         Debug.Log($"[Client] Images encontradas: {images.Length}");
         foreach (var img in images)
         {
-            Debug.Log($"[Client] - Image: {img.name}, Enabled: {img.enabled}, Sprite: {(img.sprite != null ? img.sprite.name : "null")}, Color: {img.color}");
+           // Debug.Log($"[Client] - Image: {img.name}, Enabled: {img.enabled}, Sprite: {(img.sprite != null ? img.sprite.name : "null")}, Color: {img.color}");
         }
 
         SpriteRenderer[] spriteRenderers = obj.GetComponentsInChildren<SpriteRenderer>();
-        Debug.Log($"[Client] SpriteRenderers encontrados: {spriteRenderers.Length}");
+        //Debug.Log($"[Client] SpriteRenderers encontrados: {spriteRenderers.Length}");
         foreach (var sr in spriteRenderers)
         {
             Debug.Log($"[Client] - SpriteRenderer: {sr.name}, Enabled: {sr.enabled}, Sprite: {(sr.sprite != null ? sr.sprite.name : "null")}, SortingOrder: {sr.sortingOrder}, Color: {sr.color}");
         }
 
-        Debug.Log($"[Client] === FIN DEBUG CONFIGURACIÓN ===");
+        //Debug.Log($"[Client] === FIN DEBUG CONFIGURACIÓN ===");
     }
 
     private GameObject GetAttackPrefab(CardData.ElementType elementType)
@@ -444,7 +444,7 @@ public class SimpleBattleAnimator : NetworkBehaviour
 
         if (prefab == null)
         {
-            Debug.LogError($"[Client] Prefab de resultado para {result} es null!");
+            //Debug.LogError($"[Client] Prefab de resultado para {result} es null!");
         }
 
         return prefab;
@@ -453,50 +453,50 @@ public class SimpleBattleAnimator : NetworkBehaviour
     [Server]
     public void ShowVictoryAnimation()
     {
-        Debug.Log("[Server] Mostrando animación de victoria del juego");
+        //Debug.Log("[Server] Mostrando animación de victoria del juego");
         RpcShowVictoryAnimation();
     }
 
     [ClientRpc]
     private void RpcShowVictoryAnimation()
     {
-        Debug.Log("[Client] Recibido RPC para mostrar animación de victoria");
+        //Debug.Log("[Client] Recibido RPC para mostrar animación de victoria");
 
         if (victoryPrefab != null && animationPanel != null)
         {
             GameObject victory = Instantiate(victoryPrefab, animationPanel);
             ConfigureAnimationObject(victory, "GameVictory");
-            Debug.Log($"[Client] Animación de victoria del juego instanciada: {victory.name}");
+            //Debug.Log($"[Client] Animación de victoria del juego instanciada: {victory.name}");
             StartCoroutine(DestroyAfterAnimation(victory));
         }
         else
         {
-            Debug.LogError("[Client] No se puede mostrar animación de victoria - prefab o panel faltante");
+            //Debug.LogError("[Client] No se puede mostrar animación de victoria - prefab o panel faltante");
         }
     }
 
     [Server]
     public void ShowDrawAnimation()
     {
-        Debug.Log("[Server] Mostrando animación de empate del juego");
+        //Debug.Log("[Server] Mostrando animación de empate del juego");
         RpcShowDrawAnimation();
     }
 
     [ClientRpc]
     private void RpcShowDrawAnimation()
     {
-        Debug.Log("[Client] Recibido RPC para mostrar animación de empate");
+        //Debug.Log("[Client] Recibido RPC para mostrar animación de empate");
 
         if (drawPrefab != null && animationPanel != null)
         {
             GameObject draw = Instantiate(drawPrefab, animationPanel);
             ConfigureAnimationObject(draw, "GameDraw");
-            Debug.Log($"[Client] Animación de empate del juego instanciada: {draw.name}");
+            //Debug.Log($"[Client] Animación de empate del juego instanciada: {draw.name}");
             StartCoroutine(DestroyAfterAnimation(draw));
         }
         else
         {
-            Debug.LogError("[Client] No se puede mostrar animación de empate - prefab o panel faltante");
+            //Debug.LogError("[Client] No se puede mostrar animación de empate - prefab o panel faltante");
         }
     }
 
@@ -504,19 +504,19 @@ public class SimpleBattleAnimator : NetworkBehaviour
     {
         if (animObject == null)
         {
-            Debug.LogWarning("[Client] Objeto de animación es null en WaitForAnimation");
+            //Debug.LogWarning("[Client] Objeto de animación es null en WaitForAnimation");
             yield break;
         }
 
         // Debug del objeto
-        Debug.Log($"[Client] Esperando animación de: {animObject.name}");
+        //Debug.Log($"[Client] Esperando animación de: {animObject.name}");
 
         // Buscar Animator
         Animator animator = animObject.GetComponent<Animator>();
 
         if (animator != null && animator.runtimeAnimatorController != null)
         {
-            Debug.Log($"[Client] Animator encontrado con controller: {animator.runtimeAnimatorController.name}");
+            //Debug.Log($"[Client] Animator encontrado con controller: {animator.runtimeAnimatorController.name}");
 
             // Esperar un frame para que se inicialice
             yield return null;

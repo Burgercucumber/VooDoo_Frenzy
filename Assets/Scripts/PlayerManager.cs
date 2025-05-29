@@ -39,6 +39,7 @@ public class PlayerManager : NetworkBehaviour
 
     public GameObject Auxiliar;
     public GameObject Auxiliar1;
+    public GameObject Auxiliar2;
 
     // Estas son las variables para referenciar las áreas del juego
     [SerializeField] private GameObject playerArea;
@@ -142,7 +143,8 @@ public class PlayerManager : NetworkBehaviour
 
         //Auxiliares
         auxiliar.Add(Auxiliar);
-        auxiliar.Add(Auxiliar1);//
+        auxiliar.Add(Auxiliar1);
+        auxiliar.Add(Auxiliar2);//
 
         Debug.Log("Cartas disponibles en el servidor: " + cards.Count);
     }
