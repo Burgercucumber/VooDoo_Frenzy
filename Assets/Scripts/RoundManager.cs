@@ -28,7 +28,6 @@ public class RoundManager : NetworkBehaviour
 
     void Start()
     {
-
         if (isServer)
         {
             // Esperar un momento para que los jugadores se conecten
@@ -87,6 +86,17 @@ public class RoundManager : NetworkBehaviour
             gameStarted = true;
             Debug.Log("[Server] ¡El juego ha comenzado oficialmente!");
 
+            // NUEVO: Marcar en el SimpleBattleAnimator que el juego ha comenzado
+            if (SimpleBattleAnimator.Instance != null)
+            {
+                SimpleBattleAnimator.Instance.SetGameStarted();
+                Debug.Log("[Server] Animator marcado como juego iniciado");
+            }
+            else
+            {
+                Debug.LogWarning("[Server] SimpleBattleAnimator.Instance es null - no se puede marcar como iniciado");
+            }
+
             // Notificar a todos los clientes
             RpcNotifyGameStarted();
 
@@ -114,6 +124,21 @@ public class RoundManager : NetworkBehaviour
         timeRemaining = roundTime;
         isRoundActive = true;
         Debug.Log($"[Server] Round {currentRound} started with {timeRemaining} seconds.");
+
+        // CORREGIDO: Solo iniciar animación de espera si el juego ha comenzado oficialmente
+        if (gameStarted && SimpleBattleAnimator.Instance != null)
+        {
+            SimpleBattleAnimator.Instance.StartWaitingAnimation();
+            Debug.Log("[Server] Animación de espera iniciada para la ronda");
+        }
+        else if (!gameStarted)
+        {
+            Debug.Log("[Server] Juego no ha comenzado oficialmente, saltando animación de espera");
+        }
+        else
+        {
+            Debug.LogWarning("[Server] SimpleBattleAnimator.Instance es null - no se puede iniciar animación de espera");
+        }
 
         // Para rondas posteriores a la primera, asignar nuevas cartas
         if (currentRound > 1)
@@ -169,7 +194,6 @@ public class RoundManager : NetworkBehaviour
         ResolveRound();//
         StartCoroutine(ProcessPlayedCards());
     }
-
 
     [ClientRpc]
     void RpcNotifyRoundEnded(int round)
@@ -274,16 +298,23 @@ public class RoundManager : NetworkBehaviour
                 break;
         }
 
-        // Reproducir animaciones
-        SimpleBattleAnimator animator = SimpleBattleAnimator.Instance;
-        if (animator != null)
+        // CORREGIDO: Solo reproducir animaciones si el juego ha comenzado oficialmente
+        if (gameStarted && SimpleBattleAnimator.Instance != null)
         {
-            animator.PlayBattleAnimations(winnerElement, result);
+            SimpleBattleAnimator.Instance.PlayBattleAnimations(winnerElement, result);
+            Debug.Log($"[Server] Animación de batalla iniciada: Elemento={winnerElement}, Resultado={result}");
+        }
+        else if (!gameStarted)
+        {
+            Debug.Log("[Server] Juego no ha comenzado oficialmente, saltando animación de batalla");
+        }
+        else
+        {
+            Debug.LogWarning("[Server] SimpleBattleAnimator.Instance es null - no se puede reproducir animación de batalla");
         }
 
         CheckForGameVictory();
     }
-
 
     private void CheckForGameVictory()
     {
@@ -297,23 +328,38 @@ public class RoundManager : NetworkBehaviour
         if (PlayerVictoryTracker.HasPlayerWon(players[0]))
         {
             Debug.Log($"Jugador {players[0].netId} gana el juego!");
-            // Mostrar animación especial de victoria del juego
-            SimpleBattleAnimator animator = SimpleBattleAnimator.Instance;
-            if (animator != null)
+            // CORREGIDO: Solo mostrar animación si el juego ha comenzado oficialmente
+            if (gameStarted && SimpleBattleAnimator.Instance != null)
             {
-                animator.ShowVictoryAnimation();
+                SimpleBattleAnimator.Instance.ShowVictoryAnimation();
+                Debug.Log("[Server] Animación de victoria del juego iniciada");
+            }
+            else if (!gameStarted)
+            {
+                Debug.Log("[Server] Juego no ha comenzado oficialmente, saltando animación de victoria");
+            }
+            else
+            {
+                Debug.LogWarning("[Server] SimpleBattleAnimator.Instance es null - no se puede mostrar animación de victoria");
             }
         }
         else if (PlayerVictoryTracker.HasPlayerWon(players[1]))
         {
             Debug.Log($"Jugador {players[1].netId} gana el juego!");
-            // Mostrar animación especial de victoria del juego
-            SimpleBattleAnimator animator = SimpleBattleAnimator.Instance;
-            if (animator != null)
+            // CORREGIDO: Solo mostrar animación si el juego ha comenzado oficialmente
+            if (gameStarted && SimpleBattleAnimator.Instance != null)
             {
-                animator.ShowVictoryAnimation();
+                SimpleBattleAnimator.Instance.ShowVictoryAnimation();
+                Debug.Log("[Server] Animación de victoria del juego iniciada");
+            }
+            else if (!gameStarted)
+            {
+                Debug.Log("[Server] Juego no ha comenzado oficialmente, saltando animación de victoria");
+            }
+            else
+            {
+                Debug.LogWarning("[Server] SimpleBattleAnimator.Instance es null - no se puede mostrar animación de victoria");
             }
         }
     }
-
 }
