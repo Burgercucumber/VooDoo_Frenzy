@@ -475,16 +475,8 @@ public class PlayerManager : NetworkBehaviour
 
             case "DropZone":
                 card.transform.SetParent(DropZone.transform, false);
-                // Siempre mostrar la carta al entrar en el área de juego
-                //if (!isOwned)
-                //{
-                //    CardFlipper flipper = card.GetComponent<CardFlipper>();
-                //    if (flipper != null)
-                //    {
-                //        flipper.Flip(); // Mostrar la carta, no importa su estado anterior
-                //    }
-                //}
-                //break;
+
+                // MODIFICADO: Solo mostrar la carta si no es del jugador actual Y si el tiempo no ha llegado a cero
                 if (!isOwned)
                 {
                     // Buscar el RoundManager para verificar si el tiempo llegó a cero

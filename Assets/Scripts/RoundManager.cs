@@ -248,6 +248,7 @@ public class RoundManager : NetworkBehaviour
     }
 
     // NUEVO: RPC para notificar cuando el tiempo llega a cero
+    // NUEVO: RPC para notificar cuando el tiempo llega a cero - CORREGIDO
     [ClientRpc]
     void RpcNotifyTimeZero()
     {
@@ -264,19 +265,8 @@ public class RoundManager : NetworkBehaviour
                     NetworkIdentity cardNetId = child.GetComponent<NetworkIdentity>();
                     if (cardNetId != null)
                     {
-                        // Solo hacer flip a cartas que NO pertenecen al jugador local
-                        bool isMyCard = false;
-
-                        // Buscar el PlayerManager local para comparar conexiones
-                        PlayerManager[] allPlayers = FindObjectsOfType<PlayerManager>();
-                        foreach (var player in allPlayers)
-                        {
-                            if (player.isLocalPlayer && cardNetId.connectionToClient == player.connectionToClient)
-                            {
-                                isMyCard = true;
-                                break;
-                            }
-                        }
+                        // CORREGIDO: Usar isOwned directamente desde NetworkIdentity
+                        bool isMyCard = cardNetId.isOwned;
 
                         // Solo hacer flip si NO es mi carta
                         if (!isMyCard)

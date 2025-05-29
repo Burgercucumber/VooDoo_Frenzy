@@ -12,11 +12,11 @@ MonoImporter:
   - BotonR2: {fileID: 3330925503045198327, guid: 2b2e3a29c33fadf49b88924ab1b9a102, type: 3}
   - BotonR3: {fileID: 3330925503045198327, guid: 6ae9414f8c5ed7f46999a75c5dd58fd2, type: 3}
   - BotonR4: {fileID: 3330925503045198327, guid: 34c3ad957a3a2b146ba0d1c015fc2148, type: 3}
-  - BotonV1: {fileID: 3330925503045198327, guid: 0b19eb7be0069954b8f84283a2fc7edd, type: 3}
+  - BotonV1: {fileID: 3330925503045198327, guid: 20a966b6faf260a45966a9978c322e92, type: 3}
   - BotonV2: {fileID: 3330925503045198327, guid: cc5601d0ed009ae4fbf1008b02ce5c96, type: 3}
   - BotonV3: {fileID: 3330925503045198327, guid: 5d053a1c0e26d7247b3ae977f90e4597, type: 3}
   - BotonV4: {fileID: 3330925503045198327, guid: 8c0d5fada75be8e459a2f3c80fbd01a8, type: 3}
-  - TelaM1: {instanceID: 0}
+  - TelaM1: {fileID: 3330925503045198327, guid: 783f87af988dde04fab3ba8e8118e529, type: 3}
   - TelaM2: {instanceID: 0}
   - TelaM3: {instanceID: 0}
   - TelaM4: {instanceID: 0}
@@ -28,15 +28,38 @@ MonoImporter:
   - TelaV2: {instanceID: 0}
   - TelaV3: {instanceID: 0}
   - TelaV4: {instanceID: 0}
+  - AlfilerM1: {instanceID: 0}
+  - AlfilerM2: {instanceID: 0}
+  - AlfilerM3: {instanceID: 0}
+  - AlfilerM4: {instanceID: 0}
+  - AlfilerR1: {instanceID: 0}
+  - AlfilerR2: {instanceID: 0}
+  - AlfilerR3: {instanceID: 0}
+  - AlfilerR4: {instanceID: 0}
+  - AlfilerV1: {instanceID: 0}
+  - AlfilerV2: {instanceID: 0}
+  - AlfilerV3: {instanceID: 0}
+  - AlfilerV4: {instanceID: 0}
+  - AlgodonM1: {instanceID: 0}
+  - AlgodonM2: {instanceID: 0}
+  - AlgodonM3: {instanceID: 0}
+  - AlgodonM4: {instanceID: 0}
+  - AlgodonR1: {instanceID: 0}
+  - AlgodonR2: {instanceID: 0}
+  - AlgodonR3: {instanceID: 0}
+  - AlgodonR4: {instanceID: 0}
+  - AlgodonV1: {instanceID: 0}
+  - AlgodonV2: {instanceID: 0}
+  - AlgodonV3: {instanceID: 0}
+  - AlgodonV4: {instanceID: 0}
   - Auxiliar: {instanceID: 0}
   - Auxiliar1: {instanceID: 0}
+  - Auxiliar2: {instanceID: 0}
   - playerArea: {instanceID: 0}
   - enemyArea: {instanceID: 0}
   - dropZone: {instanceID: 0}
   - playerExtraArea: {instanceID: 0}
   - enemyExtraArea: {instanceID: 0}
-  - playerVictoryArea: {instanceID: 0}
-  - enemyVictoryArea: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
