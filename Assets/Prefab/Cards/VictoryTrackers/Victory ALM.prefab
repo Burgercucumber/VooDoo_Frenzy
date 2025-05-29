@@ -19,11 +19,11 @@ GameObject:
   - component: {fileID: 3329308164964507233}
   - component: {fileID: 3625159268873858892}
   - component: {fileID: -7491915371428041189}
-  - component: {fileID: -8569945455048609387}
-  - component: {fileID: 6432304571836106956}
-  m_Layer: 8
-  m_Name: Auxiliar 1
-  m_TagString: Auxiliary
+  - component: {fileID: 4901184257566210085}
+  - component: {fileID: 3879924520845291654}
+  m_Layer: 9
+  m_Name: Victory ALM
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -45,7 +45,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 420, y: -347.53}
-  m_SizeDelta: {x: 120, y: 177}
+  m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5907165286780168086
 CanvasRenderer:
@@ -75,7 +75,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -9193212335488233194, guid: acfaae49fe62b244ead4c82232ec6913, type: 3}
+  m_Sprite: {fileID: -4937243455161458475, guid: 2da10b54ac049d64ca3421cffa07a5fd, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -190,7 +190,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 120, y: 177}
+  m_Size: {x: 100, y: 100}
   m_EdgeRadius: 0
 --- !u!50 &4368354688134821474
 Rigidbody2D:
@@ -232,7 +232,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneId: 0
-  _assetId: 1034311073
+  _assetId: 2494373424
   serverOnly: 0
   visibility: 0
   hasSpawned: 0
@@ -320,7 +320,7 @@ MonoBehaviour:
   syncInterval: 0
   PlayerManager: {fileID: 0}
   NumberOfClicks: 0
---- !u!114 &-8569945455048609387
+--- !u!114 &4901184257566210085
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -329,12 +329,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 3330925503045198327}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ade3deb7090912849a47be63d50cfb9b, type: 3}
+  m_Script: {fileID: 11500000, guid: dab1ce1fc21f59243898272faa678886, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CardFront: {fileID: -9193212335488233194, guid: acfaae49fe62b244ead4c82232ec6913, type: 3}
-  CardBack: {fileID: -5540283103886046044, guid: b1d85995cbe89874daf0cd9bf89a9288, type: 3}
---- !u!114 &6432304571836106956
+  element: 3
+  color: 2
+  badgeName: AM
+--- !u!114 &3879924520845291654
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -343,12 +344,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 3330925503045198327}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a91a32f60412d94082f3a5b8583e664, type: 3}
+  m_Script: {fileID: 11500000, guid: f06f0abb04e7ed04f8cf3e0bf9bcbd2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  syncDirection: 0
-  syncMode: 0
-  syncInterval: 0
-  auxiliaryType: 1
-  cardName: Cambio Elemento
-  description: Permite cambiar el elemento de la carta

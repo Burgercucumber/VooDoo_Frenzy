@@ -567,6 +567,12 @@ MonoBehaviour:
   - {fileID: 3330925503045198327, guid: e5382cb2a27ed3e4ea923ad38656065c, type: 3}
   - {fileID: 3330925503045198327, guid: 30861186928c083479e81adcfc2c9cfd, type: 3}
   - {fileID: 3330925503045198327, guid: 00d696b1ecc5d074bad3940e010a2fbc, type: 3}
+  - {fileID: 3330925503045198327, guid: c3bb8d77d436a38418f33c0729a1bf4b, type: 3}
+  - {fileID: 3330925503045198327, guid: 77c7cd31bf56c9444b8f8706038802f3, type: 3}
+  - {fileID: 3330925503045198327, guid: 1e578db7c6641894280df18096807deb, type: 3}
+  - {fileID: 3330925503045198327, guid: 7b2732e2b9c9e1d49a64d1f681f18ff8, type: 3}
+  - {fileID: 3330925503045198327, guid: e75d32b4097527e4ab45e8c470ccad88, type: 3}
+  - {fileID: 3330925503045198327, guid: 2512ac16ee743a149aaf23ef9fcfc130, type: 3}
   - {fileID: 0}
   - {fileID: 451167597001457411, guid: 0f44ee23a38a89944a9de68a6b31c7ed, type: 3}
   - {fileID: 957759989863790055, guid: bff7d20d291e6bb44a7b93cbf510a930, type: 3}
@@ -2166,6 +2172,12 @@ MonoBehaviour:
   - {fileID: 3330925503045198327, guid: e5382cb2a27ed3e4ea923ad38656065c, type: 3}
   - {fileID: 3330925503045198327, guid: 30861186928c083479e81adcfc2c9cfd, type: 3}
   - {fileID: 3330925503045198327, guid: 00d696b1ecc5d074bad3940e010a2fbc, type: 3}
+  - {fileID: 3330925503045198327, guid: c3bb8d77d436a38418f33c0729a1bf4b, type: 3}
+  - {fileID: 3330925503045198327, guid: 77c7cd31bf56c9444b8f8706038802f3, type: 3}
+  - {fileID: 3330925503045198327, guid: 1e578db7c6641894280df18096807deb, type: 3}
+  - {fileID: 3330925503045198327, guid: 7b2732e2b9c9e1d49a64d1f681f18ff8, type: 3}
+  - {fileID: 3330925503045198327, guid: e75d32b4097527e4ab45e8c470ccad88, type: 3}
+  - {fileID: 3330925503045198327, guid: 2512ac16ee743a149aaf23ef9fcfc130, type: 3}
 --- !u!114 &1314571284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2931,6 +2943,7 @@ MonoBehaviour:
   animationPanel: {fileID: 7254455721008150150}
   animationCanvas: {fileID: 2141271664}
   canvasSortingOrder: 1000
+  waitingToAttackDelay: 1.5
 --- !u!114 &1898888265
 MonoBehaviour:
   m_ObjectHideFlags: 0

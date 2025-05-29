@@ -50,6 +50,40 @@ public class RoundManager : NetworkBehaviour
         Debug.Log("[Server] RoundManager inicializado. Esperando inicio del juego...");
     }
 
+    // NUEVO: Método para resetear el RoundManager al estado inicial
+    [Server]
+    public void ResetToInitialState()
+    {
+        if (!isServer) return;
+
+        Debug.Log("[Server] Reseteando RoundManager al estado inicial...");
+
+        // Resetear todas las variables de estado
+        gameStarted = false;
+        isRoundActive = false;
+        currentRound = 0;
+        timeRemaining = 0f;
+        lastLogTime = 0f;
+
+        // Parar cualquier corrutina en ejecución
+        StopAllCoroutines();
+
+        // Reinicializar referencias de jugadores
+        PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+        if (players.Length >= 2)
+        {
+            player1 = players[0];
+            player2 = players[1];
+        }
+        else
+        {
+            player1 = null;
+            player2 = null;
+        }
+
+        Debug.Log("[Server] RoundManager reseteado correctamente al estado inicial");
+    }
+
     void Update()
     {
         if (!isServer || !isRoundActive) return;
@@ -115,10 +149,20 @@ public class RoundManager : NetworkBehaviour
         Debug.Log("[Client] ¡El juego ha comenzado oficialmente!");
     }
 
+    // Modifica tu método StartRound() en RoundManager para incluir esta verificación al inicio:
+
     [Server]
     void StartRound()
     {
         if (!isServer) return;
+
+        // NUEVO: Verificar si el juego ha terminado antes de iniciar una nueva ronda
+        GameStarter gameStarter = GameObject.FindObjectOfType<GameStarter>();
+        if (gameStarter != null && gameStarter.IsGameEnded)
+        {
+            Debug.Log("[Server] No se puede iniciar nueva ronda - el juego ha terminado");
+            return;
+        }
 
         currentRound++;
         timeRemaining = roundTime;
@@ -316,6 +360,8 @@ public class RoundManager : NetworkBehaviour
         CheckForGameVictory();
     }
 
+    // Reemplaza tu método CheckForGameVictory() en RoundManager con este:
+
     private void CheckForGameVictory()
     {
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
@@ -325,27 +371,22 @@ public class RoundManager : NetworkBehaviour
             return;
         }
 
+        PlayerManager winner = null;
+
         if (PlayerVictoryTracker.HasPlayerWon(players[0]))
         {
             Debug.Log($"Jugador {players[0].netId} gana el juego!");
-            // CORREGIDO: Solo mostrar animación si el juego ha comenzado oficialmente
-            if (gameStarted && SimpleBattleAnimator.Instance != null)
-            {
-                SimpleBattleAnimator.Instance.ShowVictoryAnimation();
-                Debug.Log("[Server] Animación de victoria del juego iniciada");
-            }
-            else if (!gameStarted)
-            {
-                Debug.Log("[Server] Juego no ha comenzado oficialmente, saltando animación de victoria");
-            }
-            else
-            {
-                Debug.LogWarning("[Server] SimpleBattleAnimator.Instance es null - no se puede mostrar animación de victoria");
-            }
+            winner = players[0];
         }
         else if (PlayerVictoryTracker.HasPlayerWon(players[1]))
         {
             Debug.Log($"Jugador {players[1].netId} gana el juego!");
+            winner = players[1];
+        }
+
+        // Si hay un ganador, finalizar el juego
+        if (winner != null)
+        {
             // CORREGIDO: Solo mostrar animación si el juego ha comenzado oficialmente
             if (gameStarted && SimpleBattleAnimator.Instance != null)
             {
@@ -360,6 +401,21 @@ public class RoundManager : NetworkBehaviour
             {
                 Debug.LogWarning("[Server] SimpleBattleAnimator.Instance es null - no se puede mostrar animación de victoria");
             }
+
+            // NUEVO: Finalizar el juego y preparar reset
+            GameStarter gameStarter = GameObject.FindObjectOfType<GameStarter>();
+            if (gameStarter != null)
+            {
+                gameStarter.EndGameWithWinner(winner);
+            }
+            else
+            {
+                Debug.LogError("[Server] No se encontró GameStarter - no se puede finalizar el juego correctamente");
+            }
+
+            // Detener las rondas
+            isRoundActive = false;
+            Debug.Log("[Server] Rondas detenidas debido a victoria del juego");
         }
     }
 }
