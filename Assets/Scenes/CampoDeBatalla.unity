@@ -509,6 +509,8 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 3330925503045198327, guid: 96c69677b243e8b489b6791c90473895, type: 3}
   - {fileID: 3330925503045198327, guid: 204032bcbc6bee34f91f11458fc4c3b6, type: 3}
+  - {fileID: 3330925503045198327, guid: 59dd9c41d02b26d4abd3e1d3c6aad526, type: 3}
+  - {fileID: 0}
   - {fileID: 3330925503045198327, guid: c6e3d03dc8f98d54b80234fe77a9245f, type: 3}
   - {fileID: 3330925503045198327, guid: f0a748823e1f7104d853a483fc871fae, type: 3}
   - {fileID: 3330925503045198327, guid: e29b33bc0ad9a1a42a399dded2d46c9d, type: 3}
@@ -1352,6 +1354,10 @@ PrefabInstance:
     - target: {fileID: 1722794003893037514, guid: 9ae4d2d58a296384084d3a97e6089a61, type: 3}
       propertyPath: sceneId
       value: 2262836825
+      objectReference: {fileID: 0}
+    - target: {fileID: 5013393997363059774, guid: 9ae4d2d58a296384084d3a97e6089a61, type: 3}
+      propertyPath: m_StartAxis
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5013393997363059774, guid: 9ae4d2d58a296384084d3a97e6089a61, type: 3}
       propertyPath: m_CellSize.x

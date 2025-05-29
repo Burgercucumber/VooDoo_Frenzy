@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 3625159268873858892}
   - component: {fileID: -7491915371428041189}
   - component: {fileID: 4121449679601334368}
+  - component: {fileID: -1995188498654795688}
   m_Layer: 9
   m_Name: Victory TV
   m_TagString: Untagged
@@ -334,3 +335,15 @@ MonoBehaviour:
   element: 2
   color: 1
   badgeName: TV
+--- !u!114 &-1995188498654795688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3330925503045198327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f06f0abb04e7ed04f8cf3e0bf9bcbd2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
